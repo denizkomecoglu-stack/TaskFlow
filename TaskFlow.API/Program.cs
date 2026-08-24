@@ -85,13 +85,24 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi(); //geliştirme aşamasındayken api dokümanı yayınla
 }
 
-app.UseHttpsRedirection(); //http ile gelen istekleri httpsye yönlendir
+// 1. Önce HTTP'yi HTTPS'e zorla
+app.UseHttpsRedirection();
+
+// 2. İsteklerin nereye gideceğini (Rotaları) belirle
+app.UseRouting();
+
+// 3. KAPIYI AÇ (CORS her şeyden önce gelmeli ki, dönen hatalar React'e ulaşabilsin!)
+app.UseCors("ReactApp");
+
+// 4. Hız Sınırlandırıcısı (CORS'tan geçtiyse artık hızını kontrol edebiliriz)
 app.UseRateLimiter();
-app.UseCors("ReactApp"); // 1. kapıdan giren reactmı kontrol et
 
-app.UseAuthentication(); // kimlik kontrolü kullanıcı giriş yapmış mı
-app.UseAuthorization(); // yetki kontrolü
+// 5. Kimlik ve Yetki Kontrolleri
+app.UseAuthentication();
+app.UseAuthorization();
 
-app.MapControllers(); //her şey doğru ise isteği ilgili controllera yönlendir
-app.MapHub<TaskFlow.API.Hubs.BoardHub>("/boardHub");
+// 6. İlgili Controller'lara ve Hub'lara Dağıt
+app.MapControllers();
+app.MapHub<TaskFlow.API.Hubs.BoardHub>("/hubs/board"); // DİKKAT: React tarafında burayı '/hubs/board' olarak yazmıştık!
+
 app.Run();

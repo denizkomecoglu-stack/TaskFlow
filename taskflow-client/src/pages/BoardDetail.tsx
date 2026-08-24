@@ -72,7 +72,9 @@ export default function BoardDetail() {
         if (!id) return;
 
         const connection = new HubConnectionBuilder()
-            .withUrl(' https://taskflow-vio5.onrender.com')
+            .withUrl('https://taskflow-vio5.onrender.com/hubs/board', {
+                withCredentials: true
+            })
             .withAutomaticReconnect()
             .build();
 
