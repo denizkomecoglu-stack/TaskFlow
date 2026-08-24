@@ -102,9 +102,8 @@ export default function BoardDetail() {
 
         // Sayfadan çıkıldığında bağlantıyı temizle
         return () => {
-            connection.invoke('LeaveBoardGroup', id)
-                .then(() => connection.stop())
-                .catch(e => console.log(e));
+            connection.off('BoardUpdated');
+            connection.stop();
         };
     }, [id, fetchBoardDetails]);
 

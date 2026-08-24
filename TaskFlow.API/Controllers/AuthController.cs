@@ -106,7 +106,7 @@ public class AuthController : ControllerBase
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Name, user.Username)
+            new Claim("username", user.Username)
         };
 
         // appsettings.json'dan gizli anahtarı alıyoruz

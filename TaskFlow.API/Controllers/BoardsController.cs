@@ -145,6 +145,7 @@ namespace TaskFlow.API.Controllers
             _context.Boards.Add(newBoard);
             await _context.SaveChangesAsync();
 
+
             var boardDto = new BoardDtos
             {
                 Id = newBoard.Id,
@@ -168,7 +169,7 @@ namespace TaskFlow.API.Controllers
             board.Title = dto.Title;
             await _context.SaveChangesAsync();
 
-            var username = User.FindFirstValue(ClaimTypes.Name) ?? "Biri";
+            var username = User.FindFirstValue("username") ?? "Biri";
             await _hubContext.Clients.Group(id.ToString()).SendAsync("BoardUpdated", username);
 
             return Ok(new { Mesaj = "Pano adı başarıyla güncellendi." });
@@ -187,7 +188,7 @@ namespace TaskFlow.API.Controllers
             _context.Boards.Remove(board);
             await _context.SaveChangesAsync();
 
-            var username = User.FindFirstValue(ClaimTypes.Name) ?? "Pano Sahibi";
+            var username = User.FindFirstValue("username") ?? "Pano Sahibi";
             await _hubContext.Clients.Group(id.ToString()).SendAsync("BoardDeleted", username);
 
             return Ok(new { Mesaj = "Pano içindeki tüm veriler başarıyla silindi." });
@@ -229,7 +230,7 @@ namespace TaskFlow.API.Controllers
                 _context.BoardMembers.Add(boardMember);
                 await _context.SaveChangesAsync();
 
-                var newUsername = User.FindFirstValue(ClaimTypes.Name) ?? "Yeni bir üye";
+                var newUsername = User.FindFirstValue("username") ?? "Yeni bir üye";
                 await _hubContext.Clients.Group(id.ToString()).SendAsync("BoardUpdated", newUsername);
             }
             catch (DbUpdateException)
