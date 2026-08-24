@@ -54,7 +54,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("ReactApp", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "http://localhost:5174")
+        policy.WithOrigins("http://localhost:5173", "http://localhost:5174", "https://task-flow-2rpcqdmi9-denizk.vercel.app/")
         .AllowAnyHeader()
         .AllowAnyMethod()
         .AllowCredentials();
