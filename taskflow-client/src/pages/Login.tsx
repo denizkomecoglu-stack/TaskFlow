@@ -14,7 +14,7 @@ export default function Login() {
         setError('');
 
         try {
-            await api.post('/Auth/login', { email, password });
+            await api.post('https://taskflow-vio5.onrender.com/api/Auth/login', { email, password });
             localStorage.setItem('isAuthenticated', 'true');
 
             const redirectUrl = localStorage.getItem('redirectAfterLogin');
