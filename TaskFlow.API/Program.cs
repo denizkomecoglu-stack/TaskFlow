@@ -54,10 +54,14 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("ReactApp", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "http://localhost:5174", "https://task-flow-2rpcqdmi9-denizk.vercel.app/")
-        .AllowAnyHeader()
-        .AllowAnyMethod()
-        .AllowCredentials();
+        // YENİ: Vercel'in sürekli değişen linkleriyle uğraşmamak için dinamik izin veriyoruz!
+        policy.SetIsOriginAllowed(origin =>
+                  origin == "http://localhost:5173" || // Localhost'a izin ver
+                  origin.EndsWith(".vercel.app")       // Sonu .vercel.app ile bitenlere izin ver
+              )
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
 
