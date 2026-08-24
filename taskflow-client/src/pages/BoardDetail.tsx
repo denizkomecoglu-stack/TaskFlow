@@ -88,10 +88,9 @@ export default function BoardDetail() {
 
                 // BACKEND'DEN "BoardUpdated" SİNYALİ GELDİĞİNDE:
                 connection.on('BoardUpdated', (degistirenKisi) => {
-                    console.log("SIGNALR'DAN GELEN VERİ:", degistirenKisi);
-                    console.log("GELEN VERİNİN TİPİ:", typeof degistirenKisi);
-
-                    const isim = degistirenKisi ? degistirenKisi : "Birisi";
+                    const temizIsim = typeof degistirenKisi === 'string' ? degistirenKisi.trim() : "";
+                    const isim = temizIsim.length > 0 ? temizIsim : "Birisi";
+               
                     toast(`${isim} panoda değişiklik yaptı!`, {
                         style: {
                             borderRadius: '10px',
