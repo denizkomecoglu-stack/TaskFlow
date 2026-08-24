@@ -88,13 +88,17 @@ export default function BoardDetail() {
 
                 // BACKEND'DEN "BoardUpdated" SİNYALİ GELDİĞİNDE:
                 connection.on('BoardUpdated', (degistirenKisi) => {
-                    toast(`${degistirenKisi} panoda değişiklik yaptı!`, {
+                    console.log("SIGNALR'DAN GELEN VERİ:", degistirenKisi);
+                    console.log("GELEN VERİNİN TİPİ:", typeof degistirenKisi);
+
+                    const isim = degistirenKisi ? degistirenKisi : "Birisi";
+                    toast(`${isim} panoda değişiklik yaptı!`, {
                         style: {
                             borderRadius: '10px',
                             background: '#333',
                             color: '#fff',
-                        },
-                    });
+                        }
+                    })
                     fetchBoardDetails(); // Dışarıdaki fonksiyonu çağırıyoruz!
                 });
             })
@@ -102,8 +106,9 @@ export default function BoardDetail() {
 
         // Sayfadan çıkıldığında bağlantıyı temizle
         return () => {
-            connection.off('BoardUpdated');
-            connection.stop();
+            connection.invoke('LeaveBoardGroup', id)
+                .then(() => connection.stop())
+                .catch(e => console.log(e));
         };
     }, [id, fetchBoardDetails]);
 
