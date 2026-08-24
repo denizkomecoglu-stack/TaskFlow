@@ -72,7 +72,7 @@ export default function BoardDetail() {
         if (!id) return;
 
         const connection = new HubConnectionBuilder()
-            .withUrl('http://localhost:5000/boardHub')
+            .withUrl(' https://taskflow-vio5.onrender.com')
             .withAutomaticReconnect()
             .build();
 

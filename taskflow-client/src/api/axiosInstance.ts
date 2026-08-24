@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'http://localhost:5000/api',
+    baseURL: ' https://taskflow-vio5.onrender.com',
     withCredentials: true, //gizli çerezleri otomatik olarak sunucuya gönderir
 
 });
