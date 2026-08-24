@@ -9,6 +9,7 @@ import {
 } from '@hello-pangea/dnd';
 import { QRCodeSVG } from 'qrcode.react';
 import { HubConnectionBuilder } from '@microsoft/signalr';
+import toast from 'react-hot-toast';
 
 interface Task { id: string; title: string; description?: string; position: number; columnId: string; assigneeId?: string; }
 interface Column { id: string; title: string; position: number; boardId: string; tasks: Task[]; }
@@ -86,8 +87,14 @@ export default function BoardDetail() {
                 connection.invoke('JoinBoardGroup', id);
 
                 // BACKEND'DEN "BoardUpdated" SİNYALİ GELDİĞİNDE:
-                connection.on('BoardUpdated', () => {
-                    console.log('🔄 Başka biri değişiklik yaptı, ekran güncelleniyor...');
+                connection.on('BoardUpdated', (degistirenKisi) => {
+                    toast(`${degistirenKisi} panoda değişiklik yaptı!`, {
+                        style: {
+                            borderRadius: '10px',
+                            background: '#333',
+                            color: '#fff',
+                        },
+                    });
                     fetchBoardDetails(); // Dışarıdaki fonksiyonu çağırıyoruz!
                 });
             })

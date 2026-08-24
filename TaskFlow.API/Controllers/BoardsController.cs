@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -8,6 +9,7 @@ using System.Linq;
 using System.Security.Claims;
 using TaskFlow.API.Data;
 using TaskFlow.API.DTOs;
+using TaskFlow.API.Hubs;
 using TaskFlow.API.Models;
 
 namespace TaskFlow.API.Controllers
@@ -18,10 +20,12 @@ namespace TaskFlow.API.Controllers
     public class BoardsController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IHubContext<BoardHub> _hubContext;
 
-        public BoardsController(AppDbContext context)
+        public BoardsController(AppDbContext context, IHubContext<BoardHub> hubContext)
         {
             _context = context;
+            _hubContext = hubContext;
         }
 
         // GET: api/boards/{id}
@@ -164,6 +168,9 @@ namespace TaskFlow.API.Controllers
             board.Title = dto.Title;
             await _context.SaveChangesAsync();
 
+            var username = User.FindFirstValue(ClaimTypes.Name) ?? "Biri";
+            await _hubContext.Clients.Group(id.ToString()).SendAsync("BoardUpdated", username);
+
             return Ok(new { Mesaj = "Pano adı başarıyla güncellendi." });
         }
 
@@ -179,6 +186,9 @@ namespace TaskFlow.API.Controllers
 
             _context.Boards.Remove(board);
             await _context.SaveChangesAsync();
+
+            var username = User.FindFirstValue(ClaimTypes.Name) ?? "Pano Sahibi";
+            await _hubContext.Clients.Group(id.ToString()).SendAsync("BoardDeleted", username);
 
             return Ok(new { Mesaj = "Pano içindeki tüm veriler başarıyla silindi." });
         }
@@ -218,6 +228,9 @@ namespace TaskFlow.API.Controllers
             {
                 _context.BoardMembers.Add(boardMember);
                 await _context.SaveChangesAsync();
+
+                var newUsername = User.FindFirstValue(ClaimTypes.Name) ?? "Yeni bir üye";
+                await _hubContext.Clients.Group(id.ToString()).SendAsync("BoardUpdated", newUsername);
             }
             catch (DbUpdateException)
             {

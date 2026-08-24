@@ -85,6 +85,10 @@ namespace TaskFlow.API.Controllers
 
             _context.Tasks.Add(newTask);
             await _context.SaveChangesAsync();
+            var username = User.FindFirstValue(ClaimTypes.Name) ?? "Biri";
+            await _hubContext.Clients.Group(column.BoardId.ToString()).SendAsync("BoardUpdated", username);
+
+
 
             // YENİ: İstasyona haber veriyoruz! (Canlı Yayın)
             await _hubContext.Clients.Group(column.BoardId.ToString()).SendAsync("BoardUpdated");
@@ -130,6 +134,9 @@ namespace TaskFlow.API.Controllers
             // Veritabanına kaydet
             await _context.SaveChangesAsync();
 
+            var username = User.FindFirstValue(ClaimTypes.Name) ?? "Biri";
+            await _hubContext.Clients.Group(column.BoardId.ToString()).SendAsync("BoardUpdated", username);
+
             // YENİ: Görev taşındı, İstasyona haber ver! (Canlı Yayın)
             await _hubContext.Clients.Group(column.BoardId.ToString()).SendAsync("BoardUpdated");
 
@@ -157,6 +164,9 @@ namespace TaskFlow.API.Controllers
             task.Title = dto.Title;
             task.Description = dto.Description;
             await _context.SaveChangesAsync();
+
+            var username = User.FindFirstValue(ClaimTypes.Name) ?? "Biri";
+            await _hubContext.Clients.Group(column.BoardId.ToString()).SendAsync("BoardUpdated", username);
 
             // YENİ: Görev güncellendi, İstasyona haber ver! (Canlı Yayın)
             await _hubContext.Clients.Group(column.BoardId.ToString()).SendAsync("BoardUpdated");
@@ -186,6 +196,9 @@ namespace TaskFlow.API.Controllers
 
             _context.Tasks.Remove(task);
             await _context.SaveChangesAsync();
+
+            var username = User.FindFirstValue(ClaimTypes.Name) ?? "Biri";
+            await _hubContext.Clients.Group(column.BoardId.ToString()).SendAsync("BoardUpdated", username);
 
             // YENİ: Görev silindi, İstasyona haber ver! (Canlı Yayın)
             await _hubContext.Clients.Group(boardId).SendAsync("BoardUpdated");

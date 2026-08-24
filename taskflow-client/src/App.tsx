@@ -1,3 +1,4 @@
+import { Toaster } from 'react-hot-toast';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -7,7 +8,9 @@ import JoinBoard from './pages/JoinBoard';
 
 function App() {
     return (
-        <Router>
+        <>
+          <Toaster position="bottom-right" />
+           <Router>
             <Routes>
                 <Route path="/board/:id" element={<BoardDetail />} />
                 <Route path="/login" element={<Login />} />
@@ -18,7 +21,8 @@ function App() {
                 {/* Kullanıcı rastgele bir adres girerse, mantıksal olarak onu Login sayfasına yönlendir (Catch-all) */}
                 <Route path="*" element={<Navigate to="/login" replace />} />
             </Routes>
-        </Router>
+            </Router>
+        </>
     );
 }
 

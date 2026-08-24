@@ -54,7 +54,8 @@ namespace TaskFlow.API.Controllers
             _context.Columns.Add(column);
             await _context.SaveChangesAsync();
 
-            await _hubContext.Clients.Group(dto.BoardId.ToString()).SendAsync("BoardUpdated");
+            var username = User.FindFirstValue(ClaimTypes.Name) ?? "Biri";
+            await _hubContext.Clients.Group(dto.BoardId.ToString()).SendAsync("BoardUpdated", username);
 
             // Eklenen sütunu reactın anlayacağı dto formatında geri döndürüyoruz
             var resultDto = new ColumnDto
@@ -90,6 +91,9 @@ namespace TaskFlow.API.Controllers
 
             await _context.SaveChangesAsync();
 
+            var username = User.FindFirstValue(ClaimTypes.Name) ?? "Biri";
+            await _hubContext.Clients.Group(column.BoardId.ToString()).SendAsync("BoardUpdated", username);
+
             await _hubContext.Clients.Group(column.BoardId.ToString()).SendAsync("BoardUpdated");
 
             return Ok(new { Mesaj = "Sütun konumu başarıyla güncellendi." });
@@ -112,8 +116,8 @@ namespace TaskFlow.API.Controllers
 
             column.Title = dto.Title;
             await _context.SaveChangesAsync();
-
-            await _hubContext.Clients.Group(column.BoardId.ToString()).SendAsync("BoardUpdated");
+            var username = User.FindFirstValue(ClaimTypes.Name) ?? "Biri";
+            await _hubContext.Clients.Group(column.BoardId.ToString()).SendAsync("BoardUpdated", username);
 
             return Ok(new { Mesaj = "Sütun başarıyla güncellendi." });
         }
@@ -139,7 +143,10 @@ namespace TaskFlow.API.Controllers
             _context.Columns.Remove(column);
             await _context.SaveChangesAsync();
 
-            await _hubContext.Clients.Group(boardId).SendAsync("BoardUpdated");
+            var username = User.FindFirstValue(ClaimTypes.Name) ?? "Biri";
+            await _hubContext.Clients.Group(boardId).SendAsync("BoardUpdated", username);
+
+
 
             return Ok(new { Mesaj = "Sütun başarıyla silindi." });
         }
