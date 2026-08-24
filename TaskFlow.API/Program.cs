@@ -89,8 +89,7 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi(); //geliştirme aşamasındayken api dokümanı yayınla
 }
 
-// 1. Önce HTTP'yi HTTPS'e zorla
-app.UseHttpsRedirection();
+
 
 // 2. İsteklerin nereye gideceğini (Rotaları) belirle
 app.UseRouting();
