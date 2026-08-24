@@ -53,7 +53,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
-    [EnableRateLimiting("AuthLimit")]
+    [EnableRateLimiting("AuthLimit  ")]
     public async Task<IActionResult> Login(LoginDto request)
     {
         // 1. Kullanıcıyı bul
