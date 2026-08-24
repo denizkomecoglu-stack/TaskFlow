@@ -31,7 +31,7 @@ export default function Register() {
         setLoading(true);
 
         try {
-            await api.post('https://taskflow-vio5.onrender.com/api/Auth/register', { email, password });
+            await api.post('https://taskflow-vio5.onrender.com/api/Auth/register', {username, email, password });
             navigate('/login');
         } catch (err) {
             console.error("Kayıt hatası:", err);
