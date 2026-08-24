@@ -53,7 +53,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
-    [EnableRateLimiting("AuthLimit  ")]
+    [EnableRateLimiting("AuthLimit")]
     public async Task<IActionResult> Login(LoginDto request)
     {
         // 1. Kullanıcıyı bul
@@ -76,8 +76,8 @@ public class AuthController : ControllerBase
         {
             HttpOnly = true,
             Expires = DateTimeOffset.UtcNow.AddDays(7),
-            SameSite = SameSiteMode.Lax,
-            Secure = false
+            SameSite = SameSiteMode.None,
+            Secure = true
         };
 
         Response.Cookies.Append("jwt", token, cookieOptions);
