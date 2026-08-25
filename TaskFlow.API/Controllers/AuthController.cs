@@ -37,7 +37,7 @@ public class AuthController : ControllerBase
         }
 
         // 2. Şifreyi BCrypt ile güvenli hale getir
-        string passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+        string passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password, workFactor: 10);
 
         var user = new User
         {
