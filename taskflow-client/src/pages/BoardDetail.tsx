@@ -10,6 +10,7 @@ import {
 import { QRCodeSVG } from 'qrcode.react';
 import { HubConnectionBuilder } from '@microsoft/signalr';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 interface Task { id: string; title: string; description?: string; position: number; columnId: string; assigneeId?: string; }
 interface Column { id: string; title: string; position: number; boardId: string; tasks: Task[]; }
@@ -22,6 +23,7 @@ export default function BoardDetail() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -150,6 +152,26 @@ export default function BoardDetail() {
         navigator.clipboard.writeText(inviteUrl);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
+    };
+
+    const handleLeaveBoard = async () => {
+        if (!window.confirm("Bu panodan ayrılmak istediğinize emin misiniz?")) return;
+
+        try {
+            await api.post(`/Boards/${id}/leave`);
+
+            toast.success("Panodan ayrıldınız.");
+
+            //ayrıldıktan sonra dashboarda yönlendir
+            navigate('/');
+        } catch (err: unknown) {
+            console.error("Ayrılma hatası:", err);
+            if (axios.isAxiosError(err)) {
+                toast.error(err.response?.data?.Mesaj || "Panodan ayrılırken bir hata oluştu(belki de panonun sahibisiniz).");
+            } else {
+                toast.error("Panodan ayrılırken bir hata oluştu.");
+            }
+        }
     };
 
     const handleAddTask = async (e: React.FormEvent, columnId: string) => {
@@ -285,6 +307,12 @@ export default function BoardDetail() {
                     className="flex items-center gap-2 rounded bg-white/20 px-4 py-1.5 text-sm font-medium hover:bg-white/30 transition"
                 >
                     <span className="text-lg leading-none">+</span> Davet Et
+                </button>
+                <button
+                    onClick={handleLeaveBoard}
+                    className="ml-4 rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700 transition"
+                >
+                     Panodan Ayrıl
                 </button>
             </header>
 
