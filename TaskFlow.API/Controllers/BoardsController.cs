@@ -51,6 +51,7 @@ namespace TaskFlow.API.Controllers
                 Id = board.Id,
                 Title = board.Title,
                 CreatedAt = board.CreatedAt,
+                IsOwner = board.OwnerId == userId,
                 Columns = board.Columns.Select(c => new ColumnDto
                 {
                     Id = c.Id,

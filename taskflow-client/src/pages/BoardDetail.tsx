@@ -163,7 +163,7 @@ export default function BoardDetail() {
             toast.success("Panodan ayrıldınız.");
 
             //ayrıldıktan sonra dashboarda yönlendir
-            navigate('/');
+            navigate('/dashboard');
         } catch (err: unknown) {
             console.error("Ayrılma hatası:", err);
             if (axios.isAxiosError(err)) {
@@ -308,12 +308,14 @@ export default function BoardDetail() {
                 >
                     <span className="text-lg leading-none">+</span> Davet Et
                 </button>
-                <button
-                    onClick={handleLeaveBoard}
-                    className="ml-4 rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700 transition"
-                >
-                     Panodan Ayrıl
-                </button>
+                {!board.isOwner && (
+                    <button
+                        onClick={handleLeaveBoard}
+                        className="ml-4 rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700 transition"
+                    >
+                        Panodan Ayrıl
+                    </button>
+                )}
             </header>
 
             <main className="flex-1 overflow-auto p-4">
