@@ -1,7 +1,9 @@
 ﻿using System.Collections;
+using Microsoft.EntityFrameworkCore;
 
 namespace TaskFlow.API.Models
 {
+    [Index(nameof(Email), IsUnique = true)]
     public class User
     {
         public Guid Id { get; set; }
