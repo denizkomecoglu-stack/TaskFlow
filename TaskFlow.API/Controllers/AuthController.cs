@@ -99,6 +99,9 @@ public class AuthController : ControllerBase
         return Ok(new { Mesaj = "Başarıyla çıkış yapıldı" });
     }
 
+    [HttpGet("ping")]
+    public IActionResult Ping() { return Ok("Ayaktayım!"); }
+
     // Token üretme algoritması
     private string CreateToken(User user)
     {
