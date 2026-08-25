@@ -108,4 +108,22 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapHub<TaskFlow.API.Hubs.BoardHub>("/hubs/board"); // DİKKAT: React tarafında burayı '/hubs/board' olarak yazmıştık!
 app.MapMethods("/health", new[] { "GET", "HEAD" }, () => "OK").AllowAnonymous();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    try
+    {
+        dbContext.Users.FirstOrDefault();
+        Console.WriteLine("Veritabanı hazır");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("Veritabanı ısıtma hatası" + ex.Message);
+    }
+}
+
 app.Run();
+
+
+

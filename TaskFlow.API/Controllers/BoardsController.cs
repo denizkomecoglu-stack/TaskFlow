@@ -42,6 +42,7 @@ namespace TaskFlow.API.Controllers
             var board = await _context.Boards
                 .Include(b => b.Columns.OrderBy(c => c.Position))
                 .ThenInclude(c => c.Tasks.OrderBy(t => t.Position))
+                .AsSplitQuery()
                 .FirstOrDefaultAsync(b => b.Id == id && (b.OwnerId == userId || b.Members.Any(m => m.UserId == userId)));
 
             if (board == null) return NotFound("Pano bulunamadı veya yetkiniz yok.");
@@ -88,6 +89,7 @@ namespace TaskFlow.API.Controllers
                 .Where(b => b.OwnerId == userId || b.Members.Any(m => m.UserId == userId))
                 .Include(b => b.Columns)
                     .ThenInclude(c => c.Tasks)
+                .AsSplitQuery()
                 .OrderByDescending(b => b.CreatedAt)
                 .ToListAsync();
 
