@@ -194,6 +194,31 @@ namespace TaskFlow.API.Controllers
             return Ok(new { Mesaj = "Pano içindeki tüm veriler başarıyla silindi." });
         }
 
+        [HttpPost("{id}/leave")]
+        public async Task<IActionResult> LeaveBoard(Guid id)
+        {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdString))
+                return Unauthorized(new { Mesaj = "Lütfen önce sisteme giriş yapın." });
+
+            var userId = Guid.Parse(userIdString);
+
+            //kullanıcı panonun üyesi mi diye bakıyoruz
+            var boardMember = await _context.BoardMembers
+                .FirstOrDefaultAsync(bm => bm.BoardId == id && bm.UserId == userId);
+
+            if (boardMember == null)
+                return BadRequest(new { Mesaj = "Zaten bu panonun üyesi değilsiniz (veya pano sahibi olabilirsiniz)" });
+
+            _context.BoardMembers.Remove(boardMember);
+            await _context.SaveChangesAsync();
+
+            var username = User.FindFirstValue("username") ?? "Birisi";
+            await _hubContext.Clients.Group(id.ToString()).SendAsync("UserLeft", username);
+
+            return Ok(new { Mesaj = "Panodan ayrıldınız." });
+        }
+
         // POST: api/boards/{id}/join
         [HttpPost("{id}/join")]
         public async Task<IActionResult> JoinBoard(Guid id)
@@ -231,7 +256,7 @@ namespace TaskFlow.API.Controllers
                 await _context.SaveChangesAsync();
 
                 var newUsername = User.FindFirstValue("username") ?? "Yeni bir üye";
-                await _hubContext.Clients.Group(id.ToString()).SendAsync("BoardUpdated", newUsername);
+                await _hubContext.Clients.Group(id.ToString()).SendAsync("Userjoined", newUsername);
             }
             catch (DbUpdateException)
             {

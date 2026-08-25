@@ -100,11 +100,44 @@ export default function BoardDetail() {
                     })
                     fetchBoardDetails(); // Dışarıdaki fonksiyonu çağırıyoruz!
                 });
+
+                connection.on('UserJoined', (katilanKisi) => {
+                    const temizIsim = typeof katilanKisi === 'string' ? katilanKisi.trim() : "";
+                    const isim = temizIsim.length > 0 ? temizIsim : "Yeni bir kullanıcı";
+
+                    toast(`${isim} davete katıldı!`, {
+                        style: {
+                            borderRadius: '10px',
+                            background: '#333',
+                            color: '#fff'
+                        }
+                    });
+                    fetchBoardDetails();
+                });
+
+                connection.on('UserLeft', (ayrilanKisi) => {
+                    const temizIsim = typeof ayrilanKisi === 'string' ? ayrilanKisi.trim() : "";
+                    const isim = temizIsim.length > 0 ? temizIsim : "Bir kullanıcı";
+
+                    toast(`${isim} panodan ayrıldı!`, {
+                        style: {
+                            borderRadius: '10px',
+                            background: '#333',
+                            color: '#fff'
+                        }
+                    });
+
+                    fetchBoardDetails();
+                });
             })
             .catch(e => console.log('SignalR Bağlantı Hatası: ', e));
 
         // Sayfadan çıkıldığında bağlantıyı temizle
         return () => {
+            connection.off('BoardUpdated');
+            connection.off('UserJoined');
+            connection.off('UserLeft');
+
             connection.invoke('LeaveBoardGroup', id)
                 .then(() => connection.stop())
                 .catch(e => console.log(e));
