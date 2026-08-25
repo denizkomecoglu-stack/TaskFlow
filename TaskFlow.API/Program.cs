@@ -108,4 +108,9 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapHub<TaskFlow.API.Hubs.BoardHub>("/hubs/board"); // DİKKAT: React tarafında burayı '/hubs/board' olarak yazmıştık!
 
+
+
+// YENİ EKLENEN: UptimeRobot için ana kapı (Health Check)
+app.MapGet("/", () => "API Ayakta ve Çalışıyor!");
+
 app.Run();
