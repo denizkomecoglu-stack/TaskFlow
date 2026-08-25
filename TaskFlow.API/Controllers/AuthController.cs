@@ -8,6 +8,7 @@ using TaskFlow.API.Data;
 using TaskFlow.API.DTOs;
 using TaskFlow.API.Models;
 using Microsoft.AspNetCore.RateLimiting;
+using BCrypt.Net;
 
 namespace TaskFlow.API.Controllers;
 
@@ -57,20 +58,29 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Login(LoginDto request)
     {
         // 1. Kullanıcıyı bul
+        //geçici
+        var watch = System.Diagnostics.Stopwatch.StartNew();
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+        Console.WriteLine($"[1] Veritabanı arama süresi: {watch.ElapsedMilliseconds} ms");
         if (user == null)
         {
             return BadRequest("Kullanıcı bulunamadı.");
         }
 
         // 2. Şifre eşleşiyor mu kontrol et
+        //geçici
+        watch.Restart();
+        bool isPasswordValid = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
+        Console.WriteLine($"[2] Şifre Süresi: {watch.ElapsedMilliseconds} ms");
         if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
         {
             return BadRequest("Hatalı şifre.");
         }
 
         // 3. Şifre doğruysa Token (VIP Bileklik) üret
+        watch.Restart();
         string token = CreateToken(user);
+        Console.WriteLine($"[3] token süresi: {watch.ElapsedMilliseconds} ms");
 
         var cookieOptions = new CookieOptions
         {
