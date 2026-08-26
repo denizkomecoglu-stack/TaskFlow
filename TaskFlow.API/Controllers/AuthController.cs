@@ -127,7 +127,7 @@ public class AuthController : ControllerBase
         user.ResetPasswordTokenExpiry = DateTime.UtcNow.AddMinutes(15);
         await _context.SaveChangesAsync();
 
-        string resetLink = $"https://task-flow-denizk.vercel.app/reset-password?token={token}";
+        string resetLink = $"https://task-flow-denizk.vercel.app/reset-password?token={resetToken}";
 
         string mailBody = $@"
             <h3>TaskFlow Şifre Sıfırlama</h3>
