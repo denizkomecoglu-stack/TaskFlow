@@ -28,7 +28,8 @@ namespace TaskFlow.API.Services
                 Credentials = new NetworkCredential(senderEmail, senderPassword),
                 EnableSsl = true, // İŞTE KİLİTLENMEYİ ÖNLEYEN EN KRİTİK SATIR
                 DeliveryMethod = SmtpDeliveryMethod.Network,
-                UseDefaultCredentials = false
+                UseDefaultCredentials = false,
+                Timeout = 1000
             };
 
             using var mailMessage = new MailMessage
