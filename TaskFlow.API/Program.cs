@@ -1,16 +1,19 @@
 using Microsoft.EntityFrameworkCore;
 using TaskFlow.API.Data;
+using TaskFlow.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 // 1. Veritabanı Ayarı
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // 2. JWT Ayarları
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");

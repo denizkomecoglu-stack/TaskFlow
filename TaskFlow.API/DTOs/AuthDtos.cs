@@ -13,6 +13,11 @@
         public string Password { get; set; } = string.Empty;
     }
 
+    public class ForgotPasswordDto
+    {
+        public string Email { get; set; } = string.Empty;
+    }
+
     //Token üretildiğinde reacte döneceğimiz cevap
     public class AuthResponseDto
     {

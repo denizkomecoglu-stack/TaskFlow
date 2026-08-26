@@ -2,8 +2,6 @@
 workspace:
   id: c4734230-cd65-48ef-843b-0cf06b9c6b04
 
-# All resources in the `postman/` folder are automatically registered in Local View.
-# Point to additional files outside the `postman/` folder to register them individually. Example:
-#localResources:
-#  collections:
-#    - ../tests/E2E Test Collection/
+localResources:
+  specs:
+    - ../TaskFlow.API/obj/Debug/net10.0/EndpointInfo/TaskFlow.API.json

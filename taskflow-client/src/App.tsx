@@ -5,6 +5,8 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import BoardDetail from './pages/BoardDetail';
 import JoinBoard from './pages/JoinBoard';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 function App() {
     return (
@@ -13,10 +15,13 @@ function App() {
            <Router>
             <Routes>
                 <Route path="/board/:id" element={<BoardDetail />} />
-                <Route path="/login" element={<Login />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
+                    <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/join/:id" element={<JoinBoard />} />
+               
 
                 {/* Kullanıcı rastgele bir adres girerse, mantıksal olarak onu Login sayfasına yönlendir (Catch-all) */}
                 <Route path="*" element={<Navigate to="/login" replace />} />

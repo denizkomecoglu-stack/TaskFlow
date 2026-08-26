@@ -68,6 +68,12 @@ export default function Login() {
                         />
                     </div>
 
+                    <div style={{ marginTop: '10px', textAlign: 'right' }}>
+                        <Link to="/forgot-password" style={{ fontSize: '14px', color: '#2563eb' }}>
+                            Şifremi unuttum
+                        </Link>
+                    </div>
+
                     <button
                         type="submit"
                         className="w-full rounded-md bg-blue-600 py-2 text-white hover:bg-blue-700 transition-colors font-medium"

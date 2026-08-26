@@ -9,6 +9,7 @@ using TaskFlow.API.DTOs;
 using TaskFlow.API.Models;
 using Microsoft.AspNetCore.RateLimiting;
 using BCrypt.Net;
+using TaskFlow.API.Services;
 
 namespace TaskFlow.API.Controllers;
 
@@ -19,11 +20,20 @@ public class AuthController : ControllerBase
     private readonly AppDbContext _context;
     private readonly IConfiguration _configuration;
 
+    private readonly IEmailService _emailService;
+
     // IConfiguration ile appsettings.json'daki JwtSettings'i okuyabileceğiz
-    public AuthController(AppDbContext context, IConfiguration configuration)
+    public AuthController(AppDbContext context, IConfiguration config, IEmailService emailService)
     {
         _context = context;
-        _configuration = configuration;
+        _configuration = config;
+        _emailService = emailService;
+    }
+
+    public class ResetPasswordDto
+    {
+        public string Token { get; set; }
+        public string NewPassword { get; set; }
     }
 
     [HttpPost("register")]
@@ -58,23 +68,21 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Login(LoginDto request)
     {
         // 1. Kullanıcıyı bul
-        //geçici
         var watch = System.Diagnostics.Stopwatch.StartNew();
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
         Console.WriteLine($"[1] Veritabanı arama süresi: {watch.ElapsedMilliseconds} ms");
         if (user == null)
         {
-            return BadRequest("Kullanıcı bulunamadı.");
+            return BadRequest("Hatalı e-posta veya şifre.");
         }
 
         // 2. Şifre eşleşiyor mu kontrol et
-        //geçici
         watch.Restart();
         bool isPasswordValid = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
         Console.WriteLine($"[2] Şifre Süresi: {watch.ElapsedMilliseconds} ms");
-        if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+        if (!isPasswordValid)
         {
-            return BadRequest("Hatalı şifre.");
+            return BadRequest("Hatalı e-posta veya şifre.");
         }
 
         // 3. Şifre doğruysa Token (VIP Bileklik) üret
@@ -100,6 +108,63 @@ public class AuthController : ControllerBase
             Username = user.Username
         };
         return Ok(response);
+    }
+
+    [HttpPost("forgot-password")]
+    [EnableRateLimiting("AuthLimit")]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordDto request)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+        if (user == null)
+        {
+            // Güvenlik: kullanıcı var mı yok mu belli etme
+            return Ok(new { Mesaj = "Eğer sistemde böyle bir e-posta varsa, sıfırlama bağlantısı gönderilmiştir." });
+        }
+
+        string resetToken = Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
+
+        user.ResetPasswordToken = resetToken;
+        user.ResetPasswordTokenExpiry = DateTime.UtcNow.AddMinutes(15);
+        await _context.SaveChangesAsync();
+
+        string resetLink = $"https://task-flow-denizk.vercel.app/reset-password?token={token}";
+
+        string mailBody = $@"
+            <h3>TaskFlow Şifre Sıfırlama</h3>
+            <p>Merhaba,</p>
+            <p>Şifrenizi sıfırlamak için aşağıdaki bağlantıya tıklayın:</p>
+            <p><a href='{resetLink}' style='padding: 10px 15px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 5px;'>Şifremi Sıfırla</a></p>
+            <p>Bu bağlantı güvenlik sebebiyle <b>15 dakika</b> sonra geçersiz olacaktır.</p>
+            <p>Eğer bu talebi siz yapmadıysanız, bu e-postayı görmezden gelebilirsiniz.</p>";
+
+        await _emailService.SendEmailAsync(user.Email, "TaskFlow - Şifre Sıfırlama Talebi", mailBody);
+
+        return Ok(new { Mesaj = "Eğer sistemde böyle bir e-posta varsa, sıfırlama bağlantısı gönderilmiştir." });
+    }
+
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto request)
+    {
+        //veritabanında bu tokene sahip ve tokenin süresi geçmemiş kullanıcıyı arar
+        var user = await _context.Users.FirstOrDefaultAsync(u =>
+            u.ResetPasswordToken == request.Token &&
+            u.ResetPasswordTokenExpiry > DateTime.UtcNow);
+        if (user == null)
+        {
+            return BadRequest("Geçersiz veya süresi dolmuş bir sıfırlama bağlantısı.");
+        }
+
+        //yeni şifreyi bcrypt ile şifreliyoruz
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword, workFactor: 8);
+
+        //güvenlik için kullanılmış tokeni ve süresini temizliyoruz
+        user.ResetPasswordToken = null;
+        user.ResetPasswordTokenExpiry = null;
+
+        //veritabanına kaydet
+        await _context.SaveChangesAsync();
+
+        return Ok(new { Mesaj = "Şifreniz başarıyla güncellendi." });
     }
 
     [HttpPost("logout")]
