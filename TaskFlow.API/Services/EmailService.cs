@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Mail;
 using Microsoft.Extensions.Configuration;
+using System.Threading.Tasks;
 
 namespace TaskFlow.API.Services
 {
@@ -13,7 +14,7 @@ namespace TaskFlow.API.Services
             _config = config;
         }
 
-        public async Task SendEmailAsync(string toEmail, string subject, string body)
+        public async Task SendEmailAsync(string toEmail, string subject, string htmlMessage)
         {
             var smtpServer = _config["EmailSettings:SmtpServer"];
             var smtpPort = int.Parse(_config["EmailSettings:SmtpPort"]);
@@ -21,30 +22,26 @@ namespace TaskFlow.API.Services
             var senderPassword = _config["EmailSettings:SenderPassword"];
             var senderName = _config["EmailSettings:SenderName"];
 
-            using var client = new SmtpClient(smtpServer, smtpPort);
+            // USING bloğu çok önemlidir, işlem bitince bağlantıyı hemen kapatır ve kilitlenmeyi önler
+            using var client = new SmtpClient(smtpServer, smtpPort)
+            {
+                Credentials = new NetworkCredential(senderEmail, senderPassword),
+                EnableSsl = true, // İŞTE KİLİTLENMEYİ ÖNLEYEN EN KRİTİK SATIR
+                DeliveryMethod = SmtpDeliveryMethod.Network,
+                UseDefaultCredentials = false
+            };
 
-            // 1. Sıralama çok önemli: Önce false diyoruz
-            client.UseDefaultCredentials = false;
-
-            // 2. Sonra şifremizi veriyoruz
-            client.Credentials = new NetworkCredential(senderEmail, senderPassword);
-
-            // 3. Güvenliği açıyoruz
-            client.EnableSsl = true;
-
-            // --- YANLIŞLIKLA SİLİNEN KISIM BURASIYDI ---
-            // 4. Mektubu hazırlıyoruz
             using var mailMessage = new MailMessage
             {
                 From = new MailAddress(senderEmail, senderName),
                 Subject = subject,
-                Body = body,
-                IsBodyHtml = true // Linkin tıklanabilir olması (HTML) için
+                Body = htmlMessage,
+                IsBodyHtml = true
             };
 
             mailMessage.To.Add(toEmail);
 
-            // 5. Ve POSTALIYORUZ!
+            // E-posta gönderimi burada asenkron olarak gerçekleşir
             await client.SendMailAsync(mailMessage);
         }
     }
