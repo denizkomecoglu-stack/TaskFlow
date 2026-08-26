@@ -13,7 +13,7 @@ const ForgotPassword = () => {
 
         try {
             
-            const response = await fetch('https://taskflow-vio5.onrender.com/api/Auth/', {
+            const response = await fetch('https://taskflow-vio5.onrender.com/api/Auth/forgot-password', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

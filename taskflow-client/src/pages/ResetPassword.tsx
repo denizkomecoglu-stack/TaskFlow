@@ -28,7 +28,7 @@ const ResetPassword = () => {
         setMessage('');
 
         try {
-            const response = await fetch('https://taskflow-vio5.onrender.com/api/Auth/', {
+            const response = await fetch('https://taskflow-vio5.onrender.com/api/Auth/reset-password', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
