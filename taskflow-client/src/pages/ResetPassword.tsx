@@ -1,23 +1,27 @@
 import { useState, type FormEvent } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import api from '../api/axiosInstance'; // Axios iletişim istasyonumuz
+import axios from 'axios';
 
-const ResetPassword = () => {
-    //urldeki tokenı yakalıyoruz
+export default function ResetPassword() {
+    // 1. KURAL: Tüm Hook'lar en tepede
     const [searchParams] = useSearchParams();
     const token = searchParams.get('token');
     const navigate = useNavigate();
 
     const [newPassword, setNewPassword] = useState('');
     const [message, setMessage] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
-    //eğer linkte token yoksa (kullanıcı sayfaya elle girdiyse) formu hiç göstermiyoruz
+    // 2. KURAL: Erken Çıkış (Early Return) Hook'lardan sonra
     if (!token) {
         return (
-            <div style={{ textAlign: 'center', marginTop: '50px', color: '#dc2626' }}>
-                <h2>Geçersiz Bağlantı</h2>
-                <p>Lütfen e-postanızdaki şifre sıfırlama linkine tekrar tıklayın.</p>
+            <div className="flex h-screen items-center justify-center bg-gray-100">
+                <div className="text-center p-8 bg-white rounded-lg shadow-md max-w-md w-full">
+                    <h2 className="text-2xl font-bold text-red-600 mb-2">Geçersiz Bağlantı</h2>
+                    <p className="text-gray-600">Lütfen e-postanızdaki şifre sıfırlama linkine tekrar tıklayın veya yeni bir link talep edin.</p>
+                </div>
             </div>
         );
     }
@@ -28,75 +32,72 @@ const ResetPassword = () => {
         setMessage('');
 
         try {
-            const response = await fetch('https://taskflow-vio5.onrender.com/api/Auth/reset-password', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ token, newPassword }),
+            // Fetch yerine Axios kullanıyoruz, URL'i otomatik tamamlıyor
+            const response = await api.post('/Auth/reset-password', {
+                token,
+                newPassword
             });
 
-            const data = await response.json();
+            setIsSuccess(true);
+            setMessage(response.data.mesaj || 'Şifreniz başarıyla güncellendi! Giriş sayfasına yönlendiriliyorsunuz...');
 
-            if (response.ok) {
-                setIsSuccess(true);
-                setMessage('Şifreniz başarıylaa güncellendi! Giriş sayfasına yönlendiriliyorsunuz...');
-                //3 saniye sonra kullanıcıyı logine atıyoruz
-                setTimeout(() => {
-                    navigate('/login');
-                }, 3000);
-            } else {
-                setMessage(data.mesaj || 'Bir hata oluştu. Linkin süresi dolmuş olabilir.');
-            }
+            setTimeout(() => {
+                navigate('/login');
+            }, 3000);
+
         } catch (error) {
             console.error("İstek sırasında hata oluştu", error);
-            setMessage('Sunucuya bağlanırken bir hata oluştu');
+            setIsSuccess(false);
+
+            // Hata mesajını düzgünce yakalıyoruz (Çökme engellendi)
+            if (axios.isAxiosError(error) && error.response) {
+                // Eğer backend nesne döndüyse .mesaj, düz metin döndüyse direkt data'yı al
+                const errorMessage = error.response.data.mesaj || error.response.data;
+                setMessage(typeof errorMessage === 'string' ? errorMessage : 'Bağlantı geçersiz veya süresi dolmuş.');
+            } else {
+                setMessage('Sunucuya bağlanırken bir hata oluştu.');
+            }
         } finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px', textAlign: 'center', fontFamily: 'sans-serif' }}>
-            <h2>Yeni Şifre Belirle</h2>
-            <p style={{ color: '#555', marginBottom: '20px' }}>
-                Lütfen yeni şifrenizi girin
-            </p>
+        <div className="flex h-screen items-center justify-center bg-gray-100">
+            <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-md text-center">
+                <h2 className="mb-4 text-2xl font-bold text-gray-800">Yeni Şifre Belirle</h2>
+                <p className="mb-6 text-sm text-gray-600">
+                    Lütfen yeni şifrenizi girin.
+                </p>
 
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                <input
-                    type="password"
-                    placeholder="Yeni Şifreniz"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    required
-                    minLength={6}
-                    style={{ padding: '10px', fontSize: '16px', borderRadius: '5px', border: '1px solid #ccc' }}
-                />
+                {message && (
+                    <div className={`mb-4 rounded-md p-3 text-sm border ${isSuccess ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
+                        {message}
+                    </div>
+                )}
 
-                <button
-                    type="submit"
-                    disabled={isLoading}
-                    style={{
-                        padding: '10px',
-                        fontSize: '16px',
-                        backgroundColor: isLoading ? '#9ca3af' : '#10b981',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '5px',
-                        cursor: isLoading ? 'not-allowed' : 'pointer'
-                    }}
-                >
-                    {isLoading ? 'Güncelleniyor...' : isSuccess ? 'Yönlendiriliyor...' : 'Şifreyi Kaydet'}
-                </button>
-            </form>
+                <form onSubmit={handleSubmit} className="space-y-4 text-left">
+                    <div>
+                        <input
+                            type="password"
+                            placeholder="Yeni Şifreniz"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            required
+                            minLength={6}
+                            className="w-full rounded-md border border-gray-300 p-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        />
+                    </div>
 
-            {message && (
-                <div style={{ marginTop: '20px', padding: '10px', backgroundColor: message.includes('başarıyla') ? '#065f46' : '#991b1b', borderRadius: '5px' }}>
-                </div>
-            )}
+                    <button
+                        type="submit"
+                        disabled={isLoading || isSuccess}
+                        className="w-full rounded-md bg-green-600 py-2 text-white hover:bg-green-700 transition-colors font-medium disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    >
+                        {isLoading ? 'Güncelleniyor...' : isSuccess ? 'Yönlendiriliyor...' : 'Şifreyi Kaydet'}
+                    </button>
+                </form>
+            </div>
         </div>
     );
-};
-
-export default ResetPassword;
+}
