@@ -42,7 +42,7 @@ namespace TaskFlow.API.Controllers
             var board = await _context.Boards
                 .Include(b => b.Columns.OrderBy(c => c.Position))
                 .ThenInclude(c => c.Tasks.OrderBy(t => t.Position))
-                .AsSplitQuery()
+                .AsSplitQuery() // sorguları 3 e bölüp sonrasında birlştirerek devasa bir sorguyu küçük şekilde hallder.
                 .FirstOrDefaultAsync(b => b.Id == id && (b.OwnerId == userId || b.Members.Any(m => m.UserId == userId)));
 
             if (board == null) return NotFound("Pano bulunamadı veya yetkiniz yok.");
@@ -145,7 +145,26 @@ namespace TaskFlow.API.Controllers
                 CreatedAt = DateTime.UtcNow
             };
 
+            var defaultColumns = new List<Column>
+            {
+                new Column { Id = Guid.NewGuid(), BoardId = newBoard.Id, Title = "To Do", Position = 1.0, CreatedAt = DateTime.UtcNow},
+                new Column { Id = Guid.NewGuid(), BoardId = newBoard.Id, Title = "In Progress", Position = 2.0, CreatedAt = DateTime.UtcNow},
+                new Column { Id = Guid.NewGuid(), BoardId = newBoard.Id, Title = "In Review", Position = 3.0, CreatedAt = DateTime.UtcNow},
+                new Column { Id = Guid.NewGuid(), BoardId = newBoard.Id, Title = "Done", Position = 4.0, CreatedAt = DateTime.UtcNow}
+            };
+
+            //yetki kuralı: pano sahibi o panonun varsayılan yöneticisi yapıyoruz
+            var boardMember = new BoardMember
+            {
+                BoardId = newBoard.Id,
+                UserId = userId,
+                Role = "Admin",
+                JoinedAt = DateTime.UtcNow
+            };
+
             _context.Boards.Add(newBoard);
+            _context.Columns.AddRange(defaultColumns);
+            _context.BoardMembers.Add(boardMember);
             await _context.SaveChangesAsync();
 
 

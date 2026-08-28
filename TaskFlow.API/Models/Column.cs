@@ -6,6 +6,8 @@
         public string Title { get; set; } = string.Empty;
         public double Position { get; set; } // Sürükle bırak için
 
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
         //Dış anahtar hangi panoya ait
         public Guid BoardId { get; set; }
         public Board Board { get; set; } = null!;

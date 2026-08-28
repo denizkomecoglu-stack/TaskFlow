@@ -9,6 +9,8 @@
 
         public User User { get; set; }
 
+        public string Role { get; set; } = "Member";
+
         public DateTime JoinedAt { get; set; } = DateTime.UtcNow;
     }
 }

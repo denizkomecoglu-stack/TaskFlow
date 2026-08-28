@@ -54,7 +54,7 @@ public class AuthController : ControllerBase
             Id = Guid.NewGuid(),
             Username = request.Username,
             Email = request.Email,
-            PasswordHash = passwordHash // Asla düz şifre kaydetmiyoruz!
+            PasswordHash = passwordHash 
         };
 
         _context.Users.Add(user);
@@ -117,7 +117,7 @@ public class AuthController : ControllerBase
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
         if (user == null)
         {
-            // Güvenlik: kullanıcı var mı yok mu belli etme
+            //kullanıcı var mı yok mu belli etme
             return Ok(new { Mesaj = "Eğer sistemde böyle bir e-posta varsa, sıfırlama bağlantısı gönderilmiştir." });
         }
 
