@@ -216,10 +216,10 @@ export default function BoardDetail() {
         e.preventDefault();
 
         let finalTitle = newColumnTitle;
-        if (newColumnCategory === 1) finalTitle = "To Do";
-        if (newColumnCategory === 2) finalTitle = "In Progress";
-        if (newColumnCategory === 3) finalTitle = "In Review";
-        if (newColumnCategory === 4) finalTitle = "Done";
+        if (newColumnCategory === 1) finalTitle = "Yapılacaklar";
+        if (newColumnCategory === 2) finalTitle = "Devam Ediyor";
+        if (newColumnCategory === 3) finalTitle = "İncelemede";
+        if (newColumnCategory === 4) finalTitle = "Tamamlandı";
 
         if (!finalTitle.trim() || !board) return;
         const newPosition = board.columns.length > 0 ? board.columns[board.columns.length - 1].position + 1024 : 1024;
