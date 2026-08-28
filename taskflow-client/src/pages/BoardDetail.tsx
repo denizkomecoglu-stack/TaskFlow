@@ -12,8 +12,8 @@ import { HubConnectionBuilder } from '@microsoft/signalr';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 
+interface Column { id: string; title: string; position: number; category: number; boardId: string; tasks: Task[]; }
 interface Task { id: string; title: string; description?: string; position: number; columnId: string; assigneeId?: string; }
-interface Column { id: string; title: string; position: number; boardId: string; tasks: Task[]; }
 interface Board { id: string; title: string; isOwner: boolean; columns: Column[]; }
 
 export default function BoardDetail() {
@@ -33,6 +33,7 @@ export default function BoardDetail() {
 
     const [isAddingColumn, setIsAddingColumn] = useState(false);
     const [newColumnTitle, setNewColumnTitle] = useState('');
+    const [newColumnCategory, setNewColumnCategory] = useState<number>(1);
     const [addingTaskColumnId, setAddingTaskColumnId] = useState<string | null>(null);
     const [newTaskTitle, setNewTaskTitle] = useState('');
 
@@ -92,7 +93,7 @@ export default function BoardDetail() {
                 connection.on('BoardUpdated', (degistirenKisi) => {
                     const temizIsim = typeof degistirenKisi === 'string' ? degistirenKisi.trim() : "";
                     const isim = temizIsim.length > 0 ? temizIsim : "Birisi";
-               
+
                     toast(`${isim} panoda değişiklik yaptı!`, {
                         style: {
                             borderRadius: '10px',
@@ -213,14 +214,26 @@ export default function BoardDetail() {
 
     const handleAddColumn = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newColumnTitle.trim() || !board) return;
+
+        let finalTitle = newColumnTitle;
+        if (newColumnCategory === 1) finalTitle = "To Do";
+        if (newColumnCategory === 2) finalTitle = "In Progress";
+        if (newColumnCategory === 3) finalTitle = "In Review";
+        if (newColumnCategory === 4) finalTitle = "Done";
+
+        if (!finalTitle.trim() || !board) return;
         const newPosition = board.columns.length > 0 ? board.columns[board.columns.length - 1].position + 1024 : 1024;
         try {
-            const response = await api.post('/Columns', { title: newColumnTitle, position: newPosition, boardId: board.id });
+            //kategori bilgisini apiye gönder
+            const response = await api.post("/Columns", { title: finalTitle, position: newPosition, category: newColumnCategory, boardId: board.id });
             setBoard({ ...board, columns: [...board.columns, response.data] });
-            setNewColumnTitle(''); setIsAddingColumn(false);
+
+            //işlem bitince formu sıfırla
+            setNewColumnTitle('');
+            setNewColumnCategory(1);
+            setIsAddingColumn(false);
         } catch (error) { console.error(error); }
-    };
+    }
 
     const openColumnModal = (col: Column) => { setEditingColumn(col); setEditColTitle(col.title); };
 
@@ -333,26 +346,55 @@ export default function BoardDetail() {
                                                     </div>
 
                                                     {/* SADECE PANO SAHİBİ LİSTEYİ DÜZENLEYEBİLİR */}
-                                                        <div className="flex items-center gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-                                                            <span className="text-xs font-medium text-gray-500">{column.tasks.length}</span>
-                                                            <button onClick={() => openColumnModal(column)} className="text-gray-500 hover:text-gray-900 bg-gray-200 md:bg-transparent rounded px-1.5 py-0.5">✎</button>
-                                                        </div>
-                                                    
+                                                    <div className="flex items-center gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                                                        <span className="text-xs font-medium text-gray-500">{column.tasks.length}</span>
+                                                        <button onClick={() => openColumnModal(column)} className="text-gray-500 hover:text-gray-900 bg-gray-200 md:bg-transparent rounded px-1.5 py-0.5">✎</button>
+                                                    </div>
                                                 </div>
 
                                                 <Droppable droppableId={column.id} type="TASK">
                                                     {(provided: DroppableProvided, snapshot: DroppableStateSnapshot) => (
                                                         <div {...provided.droppableProps} ref={provided.innerRef} className={`flex flex-1 flex-col gap-2 overflow-y-auto px-1 pb-1 transition-colors ${snapshot.isDraggingOver ? 'bg-blue-50/50 rounded' : ''}`} style={{ minHeight: '10px' }}>
-                                                            {column.tasks.map((task, index) => (
-                                                                <Draggable key={task.id} draggableId={task.id} index={index}>
-                                                                    {(provided: DraggableProvided, snapshot: DraggableStateSnapshot) => (
-                                                                        <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} onClick={() => openTaskModal(task)} className={`group relative rounded bg-white p-3 shadow-sm border ${snapshot.isDragging ? 'border-blue-500 shadow-lg' : 'border-gray-200'} hover:border-blue-300 transition-all cursor-pointer`}>
-                                                                            <h3 className="text-sm font-medium text-gray-800">{task.title}</h3>
-                                                                            {task.description && <p className="mt-1 text-xs text-gray-500 line-clamp-2">{task.description}</p>}
-                                                                        </div>
-                                                                    )}
-                                                                </Draggable>
-                                                            ))}
+                                                            {column.tasks.map((task, index) => {
+
+                                                                // --- MÜHENDİSLİK DOKUNUŞU 1: Kartın Bittiğini Anlama ---
+                                                                const isCompleted = column.category === 4;
+
+                                                                return (
+                                                                    <Draggable key={task.id} draggableId={task.id} index={index}>
+                                                                        {(provided: DraggableProvided, snapshot: DraggableStateSnapshot) => (
+                                                                            <div
+                                                                                ref={provided.innerRef}
+                                                                                {...provided.draggableProps}
+                                                                                {...provided.dragHandleProps}
+                                                                                onClick={() => openTaskModal(task)}
+                                                                                className={`group relative rounded p-3 shadow-sm border-l-4 transition-all cursor-pointer 
+                                                                                    ${isCompleted ? 'bg-slate-50 border-l-emerald-500 opacity-75 border-y-transparent border-r-transparent' : 'bg-white border-l-transparent border-gray-200 hover:border-blue-300'} 
+                                                                                    ${snapshot.isDragging ? 'border-blue-500 shadow-lg opacity-100' : ''}`}
+                                                                            >
+                                                                                <div className="flex items-start justify-between">
+                                                                                    <h3 className={`text-sm font-medium ${isCompleted ? 'line-through text-gray-500' : 'text-gray-800'}`}>
+                                                                                        {task.title}
+                                                                                    </h3>
+
+                                                                                    {isCompleted && (
+                                                                                        <span className="text-emerald-500 ml-2 flex-shrink-0">
+                                                                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                                                                                            </svg>
+                                                                                        </span>
+                                                                                    )}
+                                                                                </div>
+                                                                                {task.description && (
+                                                                                    <p className={`mt-1 text-xs line-clamp-2 ${isCompleted ? 'text-gray-400 line-through' : 'text-gray-500'}`}>
+                                                                                        {task.description}
+                                                                                    </p>
+                                                                                )}
+                                                                            </div>
+                                                                        )}
+                                                                    </Draggable>
+                                                                );
+                                                            })}
                                                             {provided.placeholder}
                                                         </div>
                                                     )}
@@ -380,10 +422,28 @@ export default function BoardDetail() {
                                 <div className={`flex-shrink-0 ${isMobile ? 'w-full' : 'w-72'}`}>
                                     {isAddingColumn ? (
                                         <form onSubmit={handleAddColumn} className="rounded-lg bg-gray-100 p-2 shadow-sm">
-                                            <input type="text" autoFocus value={newColumnTitle} onChange={(e) => setNewColumnTitle(e.target.value)} placeholder="Liste başlığı girin..." className="w-full rounded-md border-2 border-blue-500 p-2 text-sm focus:outline-none" />
+
+                                            {/* --- MÜHENDİSLİK DOKUNUŞU 2: Kategori Dropdown'u --- */}
+                                            <select
+                                                className="w-full rounded-md border border-gray-300 p-2 text-sm focus:border-blue-500 focus:outline-none mb-2 bg-white"
+                                                value={newColumnCategory}
+                                                onChange={(e) => setNewColumnCategory(Number(e.target.value))}
+                                            >
+                                                <option value={1}> Yapılacaklar (To Do)</option>
+                                                <option value={2}> Devam Ediyor (In Progress)</option>
+                                                <option value={3}> İncelemede (In Review)</option>
+                                                <option value={4}> Tamamlandı (Done)</option>
+                                                <option value={5}> Özel İsimli Liste...</option>
+                                            </select>
+
+                                            {/* Sadece Özel İsimli Liste (5) seçildiğinde input açılır */}
+                                            {newColumnCategory === 5 && (
+                                                <input type="text" autoFocus value={newColumnTitle} onChange={(e) => setNewColumnTitle(e.target.value)} placeholder="Liste başlığı girin..." className="w-full rounded-md border-2 border-blue-500 p-2 text-sm focus:outline-none mb-2" />
+                                            )}
+
                                             <div className="mt-2 flex items-center gap-2">
                                                 <button type="submit" className="rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition">Liste Ekle</button>
-                                                <button type="button" onClick={() => setIsAddingColumn(false)} className="rounded px-2 py-1 text-xl text-gray-500 hover:text-gray-800 transition">×</button>
+                                                <button type="button" onClick={() => { setIsAddingColumn(false); setNewColumnCategory(1); }} className="rounded px-2 py-1 text-xl text-gray-500 hover:text-gray-800 transition">×</button>
                                             </div>
                                         </form>
                                     ) : (
@@ -428,12 +488,7 @@ export default function BoardDetail() {
                             <div className="mb-4"><label className="mb-1 block text-sm font-medium text-gray-700">Başlık</label><input type="text" autoFocus value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="w-full rounded border border-gray-300 p-2 text-sm focus:border-blue-500 focus:outline-none" /></div>
                             <div className="mb-4"><label className="mb-1 block text-sm font-medium text-gray-700">Açıklama</label><textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} rows={4} className="w-full resize-none rounded border border-gray-300 p-2 text-sm focus:border-blue-500 focus:outline-none" /></div>
                             <div className="mt-6 flex items-center justify-between">
-                                {/* SADECE PANO SAHİBİ GÖREVİ SİLEBİLİR */}
-                              
-                                    <button type="button" onClick={() => setShowDeleteConfirm(true)} className="rounded bg-red-100 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-200 transition">Sil</button>
-  
-                                    <div></div>
-                             
+                                <button type="button" onClick={() => setShowDeleteConfirm(true)} className="rounded bg-red-100 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-200 transition">Sil</button>
                                 <div className="flex gap-2"><button type="button" onClick={() => setEditingTask(null)} className="rounded px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 transition">İptal</button><button type="submit" className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition">Kaydet</button></div>
                             </div>
                         </form>

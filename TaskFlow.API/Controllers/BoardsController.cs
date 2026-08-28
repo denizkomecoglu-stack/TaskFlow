@@ -107,6 +107,7 @@ namespace TaskFlow.API.Controllers
                         Id = c.Id,
                         Title = c.Title,
                         Position = c.Position,
+                        Category = (int)c.Category,
                         BoardId = c.BoardId,
                         Tasks = c.Tasks
                             .OrderBy(t => t.Position)
@@ -147,10 +148,10 @@ namespace TaskFlow.API.Controllers
 
             var defaultColumns = new List<Column>
             {
-                new Column { Id = Guid.NewGuid(), BoardId = newBoard.Id, Title = "To Do", Position = 1.0, CreatedAt = DateTime.UtcNow},
-                new Column { Id = Guid.NewGuid(), BoardId = newBoard.Id, Title = "In Progress", Position = 2.0, CreatedAt = DateTime.UtcNow},
-                new Column { Id = Guid.NewGuid(), BoardId = newBoard.Id, Title = "In Review", Position = 3.0, CreatedAt = DateTime.UtcNow},
-                new Column { Id = Guid.NewGuid(), BoardId = newBoard.Id, Title = "Done", Position = 4.0, CreatedAt = DateTime.UtcNow}
+                new Column { Id = Guid.NewGuid(), BoardId = newBoard.Id, Title = "Yapılacaklar", Position = 1.0, Category = ColumnCategory.ToDo, CreatedAt = DateTime.UtcNow},
+                new Column { Id = Guid.NewGuid(), BoardId = newBoard.Id, Title = "Devam Ediyor", Position = 2.0, Category = ColumnCategory.InProgress, CreatedAt = DateTime.UtcNow},
+                new Column { Id = Guid.NewGuid(), BoardId = newBoard.Id, Title = "İncelemede", Position = 3.0, Category = ColumnCategory.InReview, CreatedAt = DateTime.UtcNow},
+                new Column { Id = Guid.NewGuid(), BoardId = newBoard.Id, Title = "Tamamlandı", Position = 4.0, Category = ColumnCategory.Done, CreatedAt = DateTime.UtcNow}
             };
 
             //yetki kuralı: pano sahibi o panonun varsayılan yöneticisi yapıyoruz

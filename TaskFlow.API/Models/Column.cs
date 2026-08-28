@@ -6,11 +6,21 @@
         public string Title { get; set; } = string.Empty;
         public double Position { get; set; } // Sürükle bırak için
 
+        public ColumnCategory Category { get; set; } = ColumnCategory.Custom;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         //Dış anahtar hangi panoya ait
         public Guid BoardId { get; set; }
         public Board Board { get; set; } = null!;
         public ICollection<TaskItem> Tasks { get; set; } = new List<TaskItem>();
+    }
+
+    public enum ColumnCategory
+    {
+        ToDo = 1,
+        InProgress = 2,
+        InReview = 3,
+        Done = 4,
+        Custom = 5
     }
 }
