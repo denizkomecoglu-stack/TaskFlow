@@ -389,6 +389,7 @@ export default function BoardDetail() {
                                             <div
                                                 ref={provided.innerRef}
                                                 {...provided.draggableProps}
+                                                style={provided.draggableProps.style}
                                                 className={`flex max-h-full flex-shrink-0 flex-col rounded-2xl bg-slate-100/90 backdrop-blur-md shadow-xl border border-white/40 transition-transform ${isMobile ? 'w-full' : 'w-72'} ${snapshot.isDragging ? 'rotate-2 scale-105 opacity-90' : ''}`}
                                             >
                                                 {/* SÜTUN BAŞLIĞI */}
