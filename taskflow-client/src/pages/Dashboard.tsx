@@ -109,8 +109,8 @@ export default function Dashboard() {
                         </button>
                     </header>
                     <div>
-                        <h2 className="text-3xl font-bold text-white mb-2 tracking-tight">Hoş geldin 👋</h2>
-                        <p className="text-blue-100 text-lg max-w-xl">Bugün hangi projeler üzerinde çalışıyoruz? Panonu seç ve iş akışını yönetmeye başla.</p>
+                        <h2 className="text-3xl font-bold text-white mb-2 tracking-tight">Hoş geldin </h2>
+                        <p className="text-blue-100 text-lg max-w-xl">Pano yaratın veya mevcut pano üzerinden iş akışını yönetin</p>
                     </div>
                 </div>
             </div>

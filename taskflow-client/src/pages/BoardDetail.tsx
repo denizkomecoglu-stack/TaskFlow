@@ -334,26 +334,33 @@ export default function BoardDetail() {
         <div className="flex h-screen flex-col bg-gradient-to-br from-indigo-900 via-blue-800 to-slate-900 overflow-hidden font-sans">
 
             {/* --- ÜST MENÜ --- */}
-            <header className="flex items-center justify-between px-6 py-4 bg-white/10 backdrop-blur-md border-b border-white/10 shadow-sm z-10">
-                <h1 className="text-2xl font-bold text-white tracking-wide">
-                    {board?.title || "Yükleniyor..."}
-                </h1>
-                <div className="flex items-center gap-4 text-white">
-                    <Link to="/dashboard" className="rounded bg-white/20 px-3 py-1.5 text-sm font-medium hover:bg-white/30 transition shadow-sm">← Geri</Link>
-                    <h1 className="text-xl font-bold border-l border-white/30 pl-4">{board.title}</h1>
+            <header className="flex items-center justify between px-6 py-4 bg-white/10 backdrop-blur-md border-b border-white/10 shadow-sm z-10">
+                {/*SOl alan geri butonu*/}
+                <div className="flex-1 flex justify-start">
+                    <Link to="/dashboard" className="rounded-lg bg-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/30 transition shadow-sm border border-white/10">
+                        ← Geri
+                    </Link>
                 </div>
-                <div className="flex items-center gap-3">
+
+                {/* Orta alan sadece pano ismi*/}
+                <div className="flex-1 flex justify-center">
+                    <h1 className="text-2xl font-bold text-white tracking-wide">
+                        {board?.title || "Yükleniyor..."}
+                    </h1>
+                </div>
+
+                {/* Sağ alan işlem butonları */}
+                <div className="flex-1 flex items-center justify-end gap-3">
                     <button
                         onClick={() => setShowInviteModal(true)}
-                        className="flex items-center gap-1.5 rounded-lg bg-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/30 transition shadow-sm border border-white/10"
-                    >
-                        <span className="text-lg leading-none">+</span> Davet Et
+                        className="flex items-center gap-1.5 rounded-lg bg-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/30 transition shadow-sm border border-white/10">
+                    <span className="text-lg leading-none">+</span> Davet et
                     </button>
                     <button
                         onClick={toggleLogSidebar}
                         className="bg-white/20 hover:bg-white/30 text-white font-medium py-2 px-4 rounded-lg backdrop-blur-sm transition-all shadow-sm border border-white/10"
                     >
-                        ⏱️ Geçmiş
+                      Geçmiş
                     </button>
 
                     {!board.isOwner && (
@@ -361,8 +368,9 @@ export default function BoardDetail() {
                             onClick={handleLeaveBoard}
                             className="ml-2 rounded-lg bg-red-500/80 hover:bg-red-600 px-4 py-2 text-white font-medium backdrop-blur-sm transition shadow-sm border border-red-500/50"
                         >
-                            Panodan Ayrıl
+                            Panodan ayrıl
                         </button>
+
                     )}
                 </div>
             </header>
