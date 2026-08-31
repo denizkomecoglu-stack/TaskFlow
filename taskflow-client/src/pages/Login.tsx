@@ -14,7 +14,9 @@ export default function Login() {
         setError('');
 
         try {
-            await api.post('https://taskflow-vio5.onrender.com/api/Auth/login', {email, password });
+            // api (axiosInstance) kullandığımız için baseURL zaten ayarlıdır, 
+            // sadece '/Auth/login' yazmamız yeterli. (Eğer hata verirse eski uzun URL'yi koyabilirsin)
+            await api.post('/Auth/login', { email, password });
             localStorage.setItem('isAuthenticated', 'true');
 
             const redirectUrl = localStorage.getItem('redirectAfterLogin');
@@ -35,56 +37,70 @@ export default function Login() {
     };
 
     return (
-        <div className="flex h-screen items-center justify-center bg-gray-100">
-            <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-md">
-                <h2 className="mb-6 text-center text-2xl font-bold text-gray-800">TaskFlow</h2>
+        <div className="relative flex h-screen items-center justify-center bg-gradient-to-br from-indigo-900 via-blue-800 to-slate-900 overflow-hidden font-sans">
+
+            {/* Arka Plan Dekoratif Işık Efektleri (Blur) */}
+            <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-blue-500/20 blur-3xl pointer-events-none"></div>
+            <div className="absolute -bottom-32 -right-32 w-96 h-96 rounded-full bg-indigo-500/20 blur-3xl pointer-events-none"></div>
+
+            {/* Giriş Kartı */}
+            <div className="relative z-10 w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl border border-white/10">
+                <div className="mb-8 text-center">
+                    <h2 className="text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
+                        TaskFlow
+                    </h2>
+                    <p className="mt-2 text-sm text-gray-500 font-medium">Çalışma alanınıza giriş yapın</p>
+                </div>
 
                 {error && (
-                    <div className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-600 border border-red-200">
+                    <div className="mb-6 flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-600 border border-red-100 shadow-sm">
+                        <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         {error}
                     </div>
                 )}
 
-                <form onSubmit={handleLogin} className="space-y-4">
+                <form onSubmit={handleLogin} className="space-y-5">
                     <div>
-                        <label className="mb-1 block text-sm font-medium text-gray-700">Email</label>
+                        <label className="mb-1.5 block text-sm font-semibold text-gray-700">Email</label>
                         <input
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="w-full rounded-md border border-gray-300 p-2 focus:border-blue-500 focus:outline-none"
+                            placeholder="ornek@sirket.com"
+                            className="w-full rounded-xl border border-gray-300 bg-gray-50 p-3 text-sm focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all"
                             required
                         />
                     </div>
 
                     <div>
-                        <label className="mb-1 block text-sm font-medium text-gray-700">Şifre</label>
+                        <div className="mb-1.5 flex items-center justify-between">
+                            <label className="block text-sm font-semibold text-gray-700">Şifre</label>
+                            <Link to="/forgot-password" className="text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline transition-colors">
+                                Şifremi unuttum
+                            </Link>
+                        </div>
                         <input
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="w-full rounded-md border border-gray-300 p-2 focus:border-blue-500 focus:outline-none"
+                            placeholder="••••••••"
+                            className="w-full rounded-xl border border-gray-300 bg-gray-50 p-3 text-sm focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all"
                             required
                         />
                     </div>
 
-                    <div style={{ marginTop: '10px', textAlign: 'right' }}>
-                        <Link to="/forgot-password" style={{ fontSize: '14px', color: '#2563eb' }}>
-                            Şifremi unuttum
-                        </Link>
-                    </div>
-
                     <button
                         type="submit"
-                        className="w-full rounded-md bg-blue-600 py-2 text-white hover:bg-blue-700 transition-colors font-medium"
+                        className="mt-2 w-full rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 py-3 text-sm font-bold text-white shadow-md hover:from-blue-700 hover:to-indigo-700 hover:shadow-lg transition-all"
                     >
                         Giriş Yap
                     </button>
                 </form>
-                <div className="mt-4 text-center text-sm text-gray-600">
+
+                <div className="mt-8 text-center text-sm text-gray-600">
                     Hesabınız yok mu?{' '}
-                    <Link to="/register" className="text-blue-600 hover:underline font-medium">
-                        Kayıt Olun
+                    <Link to="/register" className="font-bold text-blue-600 hover:text-blue-700 hover:underline transition-colors">
+                        Ücretsiz Kayıt Olun
                     </Link>
                 </div>
             </div>
