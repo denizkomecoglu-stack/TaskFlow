@@ -95,7 +95,7 @@ export default function Dashboard() {
     return (
         <div className="min-h-screen bg-slate-50 pb-12 font-sans">
             {/* Üst Karşılama Alanı (Hero Section) */}
-            <div className="bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-800 pb-32 pt-8 px-4 sm:px-6 lg:px-8 shadow-inner">
+            <div className="bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-800 pb-12 pt-8 px-4 sm:px-6 lg:px-8 shadow-inner">
                 <div className="max-w-7xl mx-auto">
                     <header className="flex items-center justify-between mb-10">
                         <div className="flex items-center gap-2">
@@ -116,7 +116,7 @@ export default function Dashboard() {
             </div>
 
             {/* Ana İçerik ve Pano Kartları (Üst alana hafifçe biner) */}
-            <main className="-mt-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <main className="-pt-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 {error && (
                     <div className="mb-6 rounded-lg bg-red-50 border border-red-200 p-4 text-red-700 shadow-sm flex items-center">
                         <span className="mr-2">⚠️</span> {error}

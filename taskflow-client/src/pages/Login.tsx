@@ -66,7 +66,7 @@ export default function Login() {
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            placeholder="ornek@sirket.com"
+                            placeholder="ornek@gmail.com"
                             className="w-full rounded-xl border border-gray-300 bg-gray-50 p-3 text-sm focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all"
                             required
                         />
