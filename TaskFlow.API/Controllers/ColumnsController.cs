@@ -48,6 +48,8 @@ namespace TaskFlow.API.Controllers
                 Title = dto.Title,
                 Position = dto.Position, // react tarafından hesaplanıp örn 1024 gönderilecek
                 BoardId = dto.BoardId,
+                Category = (ColumnCategory)dto.Category,
+                CreatedAt = DateTime.UtcNow
                
             };
 
