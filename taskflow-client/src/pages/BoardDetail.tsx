@@ -356,6 +356,7 @@ export default function BoardDetail() {
                                                     {(provided: DroppableProvided, snapshot: DroppableStateSnapshot) => (
                                                         <div {...provided.droppableProps} ref={provided.innerRef} className={`flex flex-1 flex-col gap-2 overflow-y-auto px-1 pb-1 transition-colors ${snapshot.isDraggingOver ? 'bg-blue-50/50 rounded' : ''}`} style={{ minHeight: '10px' }}>
                                                             {column.tasks.map((task, index) => {
+                                                                console.log(`Sütun: ${column.title} | gelen kategori tipi/değeri:`, column.category);
 
                                                                 // --- MÜHENDİSLİK DOKUNUŞU 1: Kartın Bittiğini Anlama ---
                                                                 const isCompleted = column.category === 4;
