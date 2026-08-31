@@ -50,7 +50,8 @@ namespace TaskFlow.API.Controllers
                 BoardId = dto.BoardId,
                 Category = (ColumnCategory)dto.Category,
                 CreatedAt = DateTime.UtcNow
-               
+
+
             };
 
             _context.Columns.Add(column);
@@ -66,7 +67,9 @@ namespace TaskFlow.API.Controllers
                 Title = column.Title,
                 Position = column.Position,
                 BoardId = column.BoardId,
+                Category = (int)column.Category,
                 Tasks = new List<TaskItemDto>()
+
             };
 
             return Ok(resultDto);
