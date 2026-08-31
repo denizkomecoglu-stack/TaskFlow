@@ -331,92 +331,111 @@ export default function BoardDetail() {
     if (error || !board) return <div className="flex h-screen flex-col items-center justify-center bg-gray-50"><div className="text-red-500 mb-4 text-lg">{error || 'Pano bulunamadı.'}</div><Link to="/dashboard" className="text-blue-600 hover:underline">Panolarıma Dön</Link></div>;
 
     return (
-        <div className="flex h-screen flex-col bg-blue-600">
-            <header className="flex items-center justify-between bg-black/20 p-4 text-white">
-                <div className="flex items-center gap-4">
-                    <Link to="/dashboard" className="rounded bg-white/20 px-3 py-1 text-sm font-medium hover:bg-white/30 transition">← Geri</Link>
-                    <h1 className="text-xl font-bold">{board.title}</h1>
-                </div>
-                <button
-                    onClick={() => setShowInviteModal(true)}
-                    className="flex items-center gap-2 rounded bg-white/20 px-4 py-1.5 text-sm font-medium hover:bg-white/30 transition"
-                >
-                    <span className="text-lg leading-none">+</span> Davet Et
-                </button>
-                <button
-                    onClick={toggleLogSidebar}
-                    className="bg-white/20 hover:bg-white/30 text-white font-medium py-1.5 px-3 rounded backdrop-blur-sm transition-all"
-                >
-                      Geçmiş
-                </button>
+        <div className="flex h-screen flex-col bg-gradient-to-br from-indigo-900 via-blue-800 to-slate-900 overflow-hidden font-sans">
 
-                {!board.isOwner && (
+            {/* --- ÜST MENÜ --- */}
+            <header className="flex items-center justify-between px-6 py-4 bg-white/10 backdrop-blur-md border-b border-white/10 shadow-sm z-10">
+                <h1 className="text-2xl font-bold text-white tracking-wide">
+                    {board?.title || "Yükleniyor..."}
+                </h1>
+                <div className="flex items-center gap-4 text-white">
+                    <Link to="/dashboard" className="rounded bg-white/20 px-3 py-1.5 text-sm font-medium hover:bg-white/30 transition shadow-sm">← Geri</Link>
+                    <h1 className="text-xl font-bold border-l border-white/30 pl-4">{board.title}</h1>
+                </div>
+                <div className="flex items-center gap-3">
                     <button
-                        onClick={handleLeaveBoard}
-                        className="ml-4 rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700 transition"
+                        onClick={() => setShowInviteModal(true)}
+                        className="flex items-center gap-1.5 rounded-lg bg-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/30 transition shadow-sm border border-white/10"
                     >
-                        Panodan Ayrıl
+                        <span className="text-lg leading-none">+</span> Davet Et
                     </button>
-                )}
+                    <button
+                        onClick={toggleLogSidebar}
+                        className="bg-white/20 hover:bg-white/30 text-white font-medium py-2 px-4 rounded-lg backdrop-blur-sm transition-all shadow-sm border border-white/10"
+                    >
+                        ⏱️ Geçmiş
+                    </button>
+
+                    {!board.isOwner && (
+                        <button
+                            onClick={handleLeaveBoard}
+                            className="ml-2 rounded-lg bg-red-500/80 hover:bg-red-600 px-4 py-2 text-white font-medium backdrop-blur-sm transition shadow-sm border border-red-500/50"
+                        >
+                            Panodan Ayrıl
+                        </button>
+                    )}
+                </div>
             </header>
 
-            <main className="flex-1 overflow-auto p-4">
+            {/* --- ANA PANO (SÜRÜKLE BIRAK ALANI) --- */}
+            <main className="flex-1 overflow-x-auto overflow-y-hidden p-6 flex items-start">
                 <DragDropContext onDragEnd={onDragEnd}>
                     <Droppable droppableId="all-columns" direction={isMobile ? "vertical" : "horizontal"} type="COLUMN">
                         {(provided: DroppableProvided) => (
-                            <div {...provided.droppableProps} ref={provided.innerRef} className={`flex h-full items-start gap-4 ${isMobile ? 'flex-col pb-20' : ''}`}>
+                            <div {...provided.droppableProps} ref={provided.innerRef} className={`flex h-full items-start gap-6 ${isMobile ? 'flex-col pb-20' : ''}`}>
+
                                 {board.columns.map((column, index) => (
                                     <Draggable key={column.id} draggableId={column.id} index={index}>
                                         {(provided: DraggableProvided, snapshot: DraggableStateSnapshot) => (
-                                            <div ref={provided.innerRef} {...provided.draggableProps} className={`flex max-h-full flex-shrink-0 flex-col rounded-lg bg-gray-100 p-2 shadow-sm ${isMobile ? 'w-full' : 'w-72'} ${snapshot.isDragging ? 'shadow-2xl rotate-2 opacity-90' : ''}`}>
-                                                <div className="mb-3 flex items-center justify-between px-2 pt-1 group">
-                                                    <div {...provided.dragHandleProps} className="flex-1 cursor-grab active:cursor-grabbing font-semibold text-gray-700 py-1">
+
+                                            /* SÜTUN DIŞ KUTUSU (GLASSMORPHISM) */
+                                            <div
+                                                ref={provided.innerRef}
+                                                {...provided.draggableProps}
+                                                className={`flex max-h-full flex-shrink-0 flex-col rounded-2xl bg-slate-100/90 backdrop-blur-md shadow-xl border border-white/40 transition-transform ${isMobile ? 'w-full' : 'w-72'} ${snapshot.isDragging ? 'rotate-2 scale-105 opacity-90' : ''}`}
+                                            >
+                                                {/* SÜTUN BAŞLIĞI */}
+                                                <div className="p-4 border-b border-gray-200/50 flex justify-between items-center bg-white/40 rounded-t-2xl group">
+                                                    <div {...provided.dragHandleProps} className="flex-1 cursor-grab active:cursor-grabbing font-bold text-gray-800 py-1">
                                                         {column.title}
                                                     </div>
 
-                                                    {/* SADECE PANO SAHİBİ LİSTEYİ DÜZENLEYEBİLİR */}
                                                     <div className="flex items-center gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-                                                        <span className="text-xs font-medium text-gray-500">{column.tasks.length}</span>
-                                                        <button onClick={() => openColumnModal(column)} className="text-gray-500 hover:text-gray-900 bg-gray-200 md:bg-transparent rounded px-1.5 py-0.5">✎</button>
+                                                        <span className="text-xs font-semibold text-gray-500 bg-white px-2 py-0.5 rounded-full shadow-sm">{column.tasks.length}</span>
+                                                        <button onClick={() => openColumnModal(column)} className="text-gray-400 hover:text-blue-600 bg-white/50 hover:bg-white rounded p-1 transition-colors shadow-sm">
+                                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                                        </button>
                                                     </div>
                                                 </div>
 
+                                                {/* KARTLARIN DİZİLDİĞİ ALAN */}
                                                 <Droppable droppableId={column.id} type="TASK">
                                                     {(provided: DroppableProvided, snapshot: DroppableStateSnapshot) => (
-                                                        <div {...provided.droppableProps} ref={provided.innerRef} className={`flex flex-1 flex-col gap-2 overflow-y-auto px-1 pb-1 transition-colors ${snapshot.isDraggingOver ? 'bg-blue-50/50 rounded' : ''}`} style={{ minHeight: '10px' }}>
+                                                        <div
+                                                            {...provided.droppableProps}
+                                                            ref={provided.innerRef}
+                                                            className={`flex flex-1 flex-col gap-3 overflow-y-auto p-3 transition-colors ${snapshot.isDraggingOver ? 'bg-black/5 rounded-b-2xl' : ''}`}
+                                                            style={{ minHeight: '50px' }}
+                                                        >
                                                             {column.tasks.map((task, index) => {
-                                                                console.log(`Sütun: ${column.title} | gelen kategori tipi/değeri:`, column.category);
-
-                                                                // --- MÜHENDİSLİK DOKUNUŞU 1: Kartın Bittiğini Anlama ---
                                                                 const isCompleted = column.category === 4;
 
                                                                 return (
                                                                     <Draggable key={task.id} draggableId={task.id} index={index}>
                                                                         {(provided: DraggableProvided, snapshot: DraggableStateSnapshot) => (
+
+                                                                            /* TEKİL KART (MODERN TASARIM) */
                                                                             <div
                                                                                 ref={provided.innerRef}
                                                                                 {...provided.draggableProps}
                                                                                 {...provided.dragHandleProps}
                                                                                 onClick={() => openTaskModal(task)}
-                                                                                className={`group relative rounded p-3 shadow-sm border-l-4 transition-all cursor-pointer 
-                                                                                    ${isCompleted ? 'bg-slate-50 border-l-emerald-500 opacity-75 border-y-transparent border-r-transparent' : 'bg-white border-l-transparent border-gray-200 hover:border-blue-300'} 
-                                                                                    ${snapshot.isDragging ? 'border-blue-500 shadow-lg opacity-100' : ''}`}
+                                                                                className={`group relative rounded-xl p-3.5 shadow-sm border transition-all cursor-grab active:cursor-grabbing 
+                                                                                    ${isCompleted ? 'bg-slate-50/80 border-gray-200 border-l-4 border-l-emerald-500 opacity-75' : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-md hover:-translate-y-0.5'} 
+                                                                                    ${snapshot.isDragging ? 'border-blue-500 shadow-xl ring-2 ring-blue-500/20 rotate-1' : ''}`}
                                                                             >
                                                                                 <div className="flex items-start justify-between">
-                                                                                    <h3 className={`text-sm font-medium ${isCompleted ? 'line-through text-gray-500' : 'text-gray-800'}`}>
+                                                                                    <h3 className={`text-sm font-semibold leading-tight ${isCompleted ? 'line-through text-gray-400' : 'text-gray-800'}`}>
                                                                                         {task.title}
                                                                                     </h3>
-
                                                                                     {isCompleted && (
                                                                                         <span className="text-emerald-500 ml-2 flex-shrink-0">
-                                                                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                                                                                            </svg>
+                                                                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
                                                                                         </span>
                                                                                     )}
                                                                                 </div>
                                                                                 {task.description && (
-                                                                                    <p className={`mt-1 text-xs line-clamp-2 ${isCompleted ? 'text-gray-400 line-through' : 'text-gray-500'}`}>
+                                                                                    <p className={`mt-2 text-xs line-clamp-2 ${isCompleted ? 'text-gray-400 line-through' : 'text-gray-500'}`}>
                                                                                         {task.description}
                                                                                     </p>
                                                                                 )}
@@ -430,18 +449,21 @@ export default function BoardDetail() {
                                                     )}
                                                 </Droppable>
 
+                                                {/* YENİ KART EKLEME ALANI */}
                                                 {addingTaskColumnId === column.id ? (
-                                                    <form onSubmit={(e) => handleAddTask(e, column.id)} className="mt-2">
-                                                        <textarea autoFocus value={newTaskTitle} onChange={(e) => setNewTaskTitle(e.target.value)} placeholder="Bu kart için bir başlık girin..." className="w-full resize-none rounded bg-white p-2 text-sm shadow-sm border focus:border-blue-500 focus:outline-none" rows={2} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAddTask(e, column.id); } }} />
+                                                    <form onSubmit={(e) => handleAddTask(e, column.id)} className="px-3 pb-3">
+                                                        <textarea autoFocus value={newTaskTitle} onChange={(e) => setNewTaskTitle(e.target.value)} placeholder="Kart başlığı..." className="w-full resize-none rounded-lg bg-white p-2.5 text-sm shadow-sm border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none" rows={2} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAddTask(e, column.id); } }} />
                                                         <div className="mt-2 flex items-center gap-2">
-                                                            <button type="submit" className="rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition">Kart Ekle</button>
-                                                            <button type="button" onClick={() => { setAddingTaskColumnId(null); setNewTaskTitle(''); }} className="rounded px-2 py-1 text-xl text-gray-500 hover:text-gray-800 transition">×</button>
+                                                            <button type="submit" className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition shadow-sm">Ekle</button>
+                                                            <button type="button" onClick={() => { setAddingTaskColumnId(null); setNewTaskTitle(''); }} className="rounded-lg px-2 py-1 text-xl text-gray-500 hover:text-gray-800 transition bg-white/50 hover:bg-white">&times;</button>
                                                         </div>
                                                     </form>
                                                 ) : (
-                                                    <button onClick={() => setAddingTaskColumnId(column.id)} className="mt-2 flex w-full items-center gap-1 rounded py-1.5 px-2 text-sm text-gray-600 hover:bg-gray-200 transition">
-                                                        <span className="text-lg leading-none">+</span> Kart Ekle
-                                                    </button>
+                                                    <div className="px-3 pb-3 pt-1">
+                                                        <button onClick={() => setAddingTaskColumnId(column.id)} className="flex w-full items-center gap-2 rounded-lg py-2 px-3 text-sm font-medium text-gray-600 hover:bg-white/60 hover:text-gray-900 transition">
+                                                            <span className="text-lg leading-none">+</span> Kart Ekle
+                                                        </button>
+                                                    </div>
                                                 )}
                                             </div>
                                         )}
@@ -449,13 +471,12 @@ export default function BoardDetail() {
                                 ))}
                                 {provided.placeholder}
 
+                                {/* --- YENİ LİSTE EKLE BUTONU --- */}
                                 <div className={`flex-shrink-0 ${isMobile ? 'w-full' : 'w-72'}`}>
                                     {isAddingColumn ? (
-                                        <form onSubmit={handleAddColumn} className="rounded-lg bg-gray-100 p-2 shadow-sm">
-
-                                            {/* --- MÜHENDİSLİK DOKUNUŞU 2: Kategori Dropdown'u --- */}
+                                        <form onSubmit={handleAddColumn} className="flex flex-col bg-slate-100/90 backdrop-blur-md rounded-2xl shadow-xl border border-white/40 p-4">
                                             <select
-                                                className="w-full rounded-md border border-gray-300 p-2 text-sm focus:border-blue-500 focus:outline-none mb-2 bg-white"
+                                                className="w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none mb-3 bg-white"
                                                 value={newColumnCategory}
                                                 onChange={(e) => setNewColumnCategory(Number(e.target.value))}
                                             >
@@ -466,18 +487,19 @@ export default function BoardDetail() {
                                                 <option value={5}> Özel İsimli Liste...</option>
                                             </select>
 
-                                            {/* Sadece Özel İsimli Liste (5) seçildiğinde input açılır */}
                                             {newColumnCategory === 5 && (
-                                                <input type="text" autoFocus value={newColumnTitle} onChange={(e) => setNewColumnTitle(e.target.value)} placeholder="Liste başlığı girin..." className="w-full rounded-md border-2 border-blue-500 p-2 text-sm focus:outline-none mb-2" />
+                                                <input type="text" autoFocus value={newColumnTitle} onChange={(e) => setNewColumnTitle(e.target.value)} placeholder="Liste başlığı..." className="w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none mb-3" />
                                             )}
 
-                                            <div className="mt-2 flex items-center gap-2">
-                                                <button type="submit" className="rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition">Liste Ekle</button>
-                                                <button type="button" onClick={() => { setIsAddingColumn(false); setNewColumnCategory(1); }} className="rounded px-2 py-1 text-xl text-gray-500 hover:text-gray-800 transition">×</button>
+                                            <div className="flex items-center gap-2">
+                                                <button type="submit" className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition shadow-sm">Liste Ekle</button>
+                                                <button type="button" onClick={() => { setIsAddingColumn(false); setNewColumnCategory(1); }} className="rounded-lg px-3 py-1.5 text-xl text-gray-500 hover:text-gray-800 transition bg-white/50 hover:bg-white">&times;</button>
                                             </div>
                                         </form>
                                     ) : (
-                                        <button onClick={() => setIsAddingColumn(true)} className="flex w-full items-center gap-2 rounded-lg bg-white/20 p-3 text-white hover:bg-white/30 transition text-sm font-medium shadow-sm"><span className="text-lg leading-none">+</span> Başka liste ekle</button>
+                                        <button onClick={() => setIsAddingColumn(true)} className="flex w-full items-center gap-2 rounded-2xl bg-white/10 hover:bg-white/20 text-white transition-colors border border-white/20 border-dashed backdrop-blur-sm font-medium shadow-sm p-4">
+                                            <span className="text-xl leading-none">+</span> Başka liste ekle
+                                        </button>
                                     )}
                                 </div>
                             </div>
@@ -486,20 +508,21 @@ export default function BoardDetail() {
                 </DragDropContext>
             </main>
 
+            {/* --- MODALLAR (Tümü cam efektiyle güncellendi) --- */}
             {showInviteModal && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4">
-                    <div className="w-full max-w-sm rounded-lg bg-white p-6 shadow-2xl text-center relative">
-                        <button onClick={() => setShowInviteModal(false)} className="absolute top-3 right-4 text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
-                        <h3 className="text-lg font-bold text-gray-800 mb-1">Panoya Davet Et</h3>
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 transition-all">
+                    <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl text-center relative">
+                        <button onClick={() => setShowInviteModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-2xl leading-none">&times;</button>
+                        <h3 className="text-xl font-bold text-gray-800 mb-2">Panoya Davet Et</h3>
                         <p className="text-sm text-gray-500 mb-6">İş arkadaşlarınız QR kodu okutarak veya linke tıklayarak panoya katılabilir.</p>
                         <div className="flex justify-center mb-6">
-                            <div className="p-4 bg-white border border-gray-200 rounded-xl shadow-sm">
+                            <div className="p-4 bg-white border border-gray-100 rounded-2xl shadow-sm">
                                 <QRCodeSVG value={inviteUrl} size={180} level={"H"} />
                             </div>
                         </div>
-                        <div className="flex items-center bg-gray-100 rounded border border-gray-200 p-1">
+                        <div className="flex items-center bg-gray-50 rounded-lg border border-gray-200 p-1.5">
                             <input type="text" readOnly value={inviteUrl} className="w-full bg-transparent p-2 text-sm text-gray-600 focus:outline-none" />
-                            <button onClick={handleCopyLink} className={`rounded px-4 py-2 text-sm font-medium text-white transition whitespace-nowrap ${copied ? 'bg-green-500' : 'bg-blue-600 hover:bg-blue-700'}`}>
+                            <button onClick={handleCopyLink} className={`rounded-md px-4 py-2 text-sm font-medium text-white transition whitespace-nowrap shadow-sm ${copied ? 'bg-emerald-500' : 'bg-blue-600 hover:bg-blue-700'}`}>
                                 {copied ? 'Kopyalandı!' : 'Kopyala'}
                             </button>
                         </div>
@@ -508,18 +531,27 @@ export default function BoardDetail() {
             )}
 
             {editingTask && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-                    <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
-                        <div className="mb-4 flex items-center justify-between">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+                    <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+                        <div className="mb-5 flex items-center justify-between">
                             <h2 className="text-xl font-bold text-gray-800">Kart Detayı</h2>
-                            <button onClick={() => setEditingTask(null)} className="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
+                            <button onClick={() => setEditingTask(null)} className="text-gray-400 hover:text-gray-700 text-2xl leading-none">&times;</button>
                         </div>
                         <form onSubmit={handleUpdateTask}>
-                            <div className="mb-4"><label className="mb-1 block text-sm font-medium text-gray-700">Başlık</label><input type="text" autoFocus value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="w-full rounded border border-gray-300 p-2 text-sm focus:border-blue-500 focus:outline-none" /></div>
-                            <div className="mb-4"><label className="mb-1 block text-sm font-medium text-gray-700">Açıklama</label><textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} rows={4} className="w-full resize-none rounded border border-gray-300 p-2 text-sm focus:border-blue-500 focus:outline-none" /></div>
-                            <div className="mt-6 flex items-center justify-between">
-                                <button type="button" onClick={() => setShowDeleteConfirm(true)} className="rounded bg-red-100 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-200 transition">Sil</button>
-                                <div className="flex gap-2"><button type="button" onClick={() => setEditingTask(null)} className="rounded px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 transition">İptal</button><button type="submit" className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition">Kaydet</button></div>
+                            <div className="mb-4">
+                                <label className="mb-1.5 block text-sm font-medium text-gray-700">Başlık</label>
+                                <input type="text" autoFocus value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none" />
+                            </div>
+                            <div className="mb-6">
+                                <label className="mb-1.5 block text-sm font-medium text-gray-700">Açıklama</label>
+                                <textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} rows={4} className="w-full resize-none rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none" />
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <button type="button" onClick={() => setShowDeleteConfirm(true)} className="rounded-lg bg-red-50 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-100 transition">Sil</button>
+                                <div className="flex gap-2">
+                                    <button type="button" onClick={() => setEditingTask(null)} className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 transition">İptal</button>
+                                    <button type="submit" className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition shadow-sm">Kaydet</button>
+                                </div>
                             </div>
                         </form>
                     </div>
@@ -527,67 +559,83 @@ export default function BoardDetail() {
             )}
 
             {showDeleteConfirm && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4">
-                    <div className="w-full max-w-sm rounded-lg bg-white p-6 shadow-2xl">
-                        <h3 className="text-lg font-bold text-gray-800 mb-2">Görevi Sil</h3>
-                        <p className="text-sm text-gray-600 mb-6">"<span className="font-semibold text-gray-800">{editingTask?.title}</span>" başlıklı kartı silmek istediğinize emin misiniz?</p>
-                        <div className="flex justify-end gap-3"><button type="button" onClick={() => setShowDeleteConfirm(false)} className="rounded px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 transition">Vazgeç</button><button type="button" onClick={confirmDeleteTask} className="rounded bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition shadow-sm">Evet, Sil</button></div>
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+                    <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
+                        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 mb-4">
+                            <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                        </div>
+                        <h3 className="text-lg font-bold text-center text-gray-900 mb-2">Görevi Sil</h3>
+                        <p className="text-sm text-center text-gray-500 mb-6">"<span className="font-semibold text-gray-800">{editingTask?.title}</span>" kartını silmek istediğinize emin misiniz?</p>
+                        <div className="flex justify-center gap-3 w-full">
+                            <button type="button" onClick={() => setShowDeleteConfirm(false)} className="flex-1 rounded-lg px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 transition">Vazgeç</button>
+                            <button type="button" onClick={confirmDeleteTask} className="flex-1 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 transition shadow-sm">Evet, Sil</button>
+                        </div>
                     </div>
                 </div>
             )}
 
             {editingColumn && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-                    <div className="w-full max-w-sm rounded-lg bg-white p-6 shadow-xl">
-                        <div className="mb-4 flex items-center justify-between">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+                    <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
+                        <div className="mb-5 flex items-center justify-between">
                             <h2 className="text-xl font-bold text-gray-800">Listeyi Düzenle</h2>
-                            <button onClick={() => setEditingColumn(null)} className="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
+                            <button onClick={() => setEditingColumn(null)} className="text-gray-400 hover:text-gray-700 text-2xl leading-none">&times;</button>
                         </div>
                         <form onSubmit={handleUpdateColumn}>
-                            <div className="mb-6"><label className="mb-1 block text-sm font-medium text-gray-700">Liste Adı</label><input type="text" autoFocus value={editColTitle} onChange={(e) => setEditColTitle(e.target.value)} className="w-full rounded border border-gray-300 p-2 text-sm focus:border-blue-500 focus:outline-none" /></div>
-                            <div className="flex items-center justify-between"><button type="button" onClick={() => setShowColDeleteConfirm(editingColumn)} className="rounded bg-red-100 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-200 transition">Listeyi Sil</button><div className="flex gap-2"><button type="button" onClick={() => setEditingColumn(null)} className="rounded px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 transition">İptal</button><button type="submit" className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition">Kaydet</button></div></div>
+                            <div className="mb-6">
+                                <label className="mb-1.5 block text-sm font-medium text-gray-700">Liste Adı</label>
+                                <input type="text" autoFocus value={editColTitle} onChange={(e) => setEditColTitle(e.target.value)} className="w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none" />
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <button type="button" onClick={() => setShowColDeleteConfirm(editingColumn)} className="rounded-lg bg-red-50 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-100 transition">Sil</button>
+                                <div className="flex gap-2">
+                                    <button type="button" onClick={() => setEditingColumn(null)} className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 transition">İptal</button>
+                                    <button type="submit" className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition shadow-sm">Kaydet</button>
+                                </div>
+                            </div>
                         </form>
                     </div>
                 </div>
             )}
 
             {showColDeleteConfirm && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4">
-                    <div className="w-full max-w-sm rounded-lg bg-white p-6 shadow-2xl">
-                        <h3 className="text-lg font-bold text-gray-800 mb-2">Listeyi Sil</h3>
-                        <p className="text-sm text-gray-600 mb-6">"<span className="font-semibold text-gray-800">{showColDeleteConfirm.title}</span>" listesini ve içindeki tüm kartları silmek istediğinize emin misiniz?</p>
-                        <div className="flex justify-end gap-3"><button type="button" onClick={() => setShowColDeleteConfirm(null)} className="rounded px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 transition">Vazgeç</button><button type="button" onClick={confirmDeleteColumn} className="rounded bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition shadow-sm">Evet, Sil</button></div>
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+                    <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
+                        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 mb-4">
+                            <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                        </div>
+                        <h3 className="text-lg font-bold text-center text-gray-900 mb-2">Listeyi Sil</h3>
+                        <p className="text-sm text-center text-gray-500 mb-6">"<span className="font-semibold text-gray-800">{showColDeleteConfirm.title}</span>" listesini ve içindeki tüm kartları silmek istediğinize emin misiniz?</p>
+                        <div className="flex justify-center gap-3 w-full">
+                            <button type="button" onClick={() => setShowColDeleteConfirm(null)} className="flex-1 rounded-lg px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 transition">Vazgeç</button>
+                            <button type="button" onClick={confirmDeleteColumn} className="flex-1 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 transition shadow-sm">Evet, Sil</button>
+                        </div>
                     </div>
                 </div>
             )}
 
-            {/* Sağdan Açılan Log Menüsü (Sidebar) */}
+            {/* --- SAĞDAN AÇILAN LOG MENÜSÜ --- */}
             <div
                 className={`fixed top-0 right-0 h-full w-80 bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out ${isLogOpen ? 'translate-x-0' : 'translate-x-full'}`}
             >
                 <div className="p-4 border-b flex justify-between items-center bg-gray-50">
-                    <h2 className="text-lg font-semibold text-gray-800">Aktivite Geçmişi</h2>
-                    <button onClick={toggleLogSidebar} className="text-gray-500 hover:text-red-500 text-xl font-bold">
+                    <h2 className="text-lg font-bold text-gray-800">Aktivite Geçmişi</h2>
+                    <button onClick={toggleLogSidebar} className="text-gray-400 hover:text-red-500 text-2xl leading-none">
                         &times;
                     </button>
                 </div>
-
                 <div className="p-4 overflow-y-auto h-[calc(100vh-65px)]">
                     {logs.length === 0 ? (
-                        <p className="text-gray-500 text-sm text-center mt-10">Henüz bir hareket yok.</p>
+                        <p className="text-gray-500 text-sm text-center mt-10 font-medium">Henüz bir hareket yok.</p>
                     ) : (
-                        <ul className="space-y-4">
+                        <ul className="space-y-5">
                             {logs.map((log) => (
-                                <li key={log.id} className="text-sm">
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                                        <span className="font-semibold text-gray-700">{log.actionType}</span>
-                                    </div>
-                                    <p className="text-gray-600 pl-4">{log.message}</p>
-                                    <p className="text-xs text-gray-400 pl-4 mt-1">
-                                        {new Date(log.createdAt).toLocaleString('tr-TR', {
-                                            day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
-                                        })}
+                                <li key={log.id} className="text-sm relative pl-6">
+                                    <span className="absolute left-0 top-1.5 w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm border-2 border-white"></span>
+                                    <span className="font-bold text-gray-800 block mb-0.5">{log.actionType}</span>
+                                    <p className="text-gray-600 leading-relaxed">{log.message}</p>
+                                    <p className="text-xs font-medium text-gray-400 mt-1">
+                                        {new Date(log.createdAt).toLocaleString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                                     </p>
                                 </li>
                             ))}
