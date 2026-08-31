@@ -2,12 +2,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../api/axiosInstance';
 import axios from 'axios';
-import {
-    DragDropContext, Droppable, Draggable,
-    type DropResult, type DroppableProvided, type DroppableStateSnapshot,
-    type DraggableProvided, type DraggableStateSnapshot
-} from '@hello-pangea/dnd';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import type { DropResult, DroppableProvided, DroppableStateSnapshot, DraggableProvided, DraggableStateSnapshot } from '@hello-pangea/dnd';
 import { QRCodeSVG } from 'qrcode.react';
+
+
 import { HubConnectionBuilder } from '@microsoft/signalr';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
@@ -397,7 +396,6 @@ export default function BoardDetail() {
                                                     <div {...provided.dragHandleProps} className="flex-1 cursor-grab active:cursor-grabbing font-bold text-gray-800 py-1">
                                                         {column.title}
                                                     </div>
-
                                                     <div className="flex items-center gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                                                         <span className="text-xs font-semibold text-gray-500 bg-white px-2 py-0.5 rounded-full shadow-sm">{column.tasks.length}</span>
                                                         <button onClick={() => openColumnModal(column)} className="text-gray-400 hover:text-blue-600 bg-white/50 hover:bg-white rounded p-1 transition-colors shadow-sm">
@@ -427,8 +425,9 @@ export default function BoardDetail() {
                                                                                 ref={provided.innerRef}
                                                                                 {...provided.draggableProps}
                                                                                 {...provided.dragHandleProps}
+                                                                                style={provided.draggableProps.style}
                                                                                 onClick={() => openTaskModal(task)}
-                                                                                className={`group relative rounded-xl p-3.5 shadow-sm border transition-all cursor-grab active:cursor-grabbing 
+                                                                                className={`group relative rounded-xl p-3.5 shadow-sm border transition-show cursor-grab active:cursor-grabbing 
                                                                                     ${isCompleted ? 'bg-slate-50/80 border-gray-200 border-l-4 border-l-emerald-500 opacity-75' : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-md hover:-translate-y-0.5'} 
                                                                                     ${snapshot.isDragging ? 'border-blue-500 shadow-xl ring-2 ring-blue-500/20 rotate-1' : ''}`}
                                                                             >
