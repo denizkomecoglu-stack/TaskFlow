@@ -15,6 +15,7 @@ import { useNavigate } from 'react-router-dom';
 interface Column { id: string; title: string; position: number; category: number; boardId: string; tasks: Task[]; }
 interface Task { id: string; title: string; description?: string; position: number; columnId: string; assigneeId?: string; }
 interface Board { id: string; title: string; isOwner: boolean; columns: Column[]; }
+interface ActivityLog { id: string; actionType: string; entity: string; message: string; createdAt: string; }
 
 export default function BoardDetail() {
     const { id } = useParams<{ id: string }>();
@@ -24,6 +25,8 @@ export default function BoardDetail() {
     const [error, setError] = useState('');
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     const navigate = useNavigate();
+    const [isLogOpen, setIsLogOpen] = useState(false);
+    const [logs, setLogs] = useState<ActivityLog[]>([]);
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -305,9 +308,27 @@ export default function BoardDetail() {
         }
     };
 
+    const fetchLogs = async () => {
+        try {
+            const token = localStorage.getItem("token");
+            const response = await axios.get(`https://taskflow-vio5.onrender.com/api/${id}/logs`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setLogs(response.data);
+        } catch (error) {
+            console.error("Loglar çekilirken hata oluştu:", error);
+        }
+    };
+
+    const toggleLogSidebar = () => {
+        if (!isLogOpen) {
+            fetchLogs();
+        }
+        setIsLogOpen(!isLogOpen);
+    };
+
     if (loading) return <div className="flex h-screen items-center justify-center bg-gray-50 text-xl font-medium text-gray-500">Pano yükleniyor...</div>;
     if (error || !board) return <div className="flex h-screen flex-col items-center justify-center bg-gray-50"><div className="text-red-500 mb-4 text-lg">{error || 'Pano bulunamadı.'}</div><Link to="/dashboard" className="text-blue-600 hover:underline">Panolarıma Dön</Link></div>;
-    console.log("Bütün pano verisi:", board);
 
     return (
         <div className="flex h-screen flex-col bg-blue-600">
@@ -322,6 +343,13 @@ export default function BoardDetail() {
                 >
                     <span className="text-lg leading-none">+</span> Davet Et
                 </button>
+                <button
+                    onClick={toggleLogSidebar}
+                    className="bg-white/20 hover:bg-white/30 text-white font-medium py-1.5 px-3 rounded backdrop-blur-sm transition-all"
+                >
+                      Geçmiş
+                </button>
+
                 {!board.isOwner && (
                     <button
                         onClick={handleLeaveBoard}
@@ -532,6 +560,41 @@ export default function BoardDetail() {
                     </div>
                 </div>
             )}
+
+            {/* Sağdan Açılan Log Menüsü (Sidebar) */}
+            <div
+                className={`fixed top-0 right-0 h-full w-80 bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out ${isLogOpen ? 'translate-x-0' : 'translate-x-full'}`}
+            >
+                <div className="p-4 border-b flex justify-between items-center bg-gray-50">
+                    <h2 className="text-lg font-semibold text-gray-800">Aktivite Geçmişi</h2>
+                    <button onClick={toggleLogSidebar} className="text-gray-500 hover:text-red-500 text-xl font-bold">
+                        &times;
+                    </button>
+                </div>
+
+                <div className="p-4 overflow-y-auto h-[calc(100vh-65px)]">
+                    {logs.length === 0 ? (
+                        <p className="text-gray-500 text-sm text-center mt-10">Henüz bir hareket yok.</p>
+                    ) : (
+                        <ul className="space-y-4">
+                            {logs.map((log) => (
+                                <li key={log.id} className="text-sm">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                                        <span className="font-semibold text-gray-700">{log.actionType}</span>
+                                    </div>
+                                    <p className="text-gray-600 pl-4">{log.message}</p>
+                                    <p className="text-xs text-gray-400 pl-4 mt-1">
+                                        {new Date(log.createdAt).toLocaleString('tr-TR', {
+                                            day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+                                        })}
+                                    </p>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
+            </div>
         </div>
     );
 }

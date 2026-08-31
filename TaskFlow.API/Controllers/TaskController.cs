@@ -130,7 +130,22 @@ namespace TaskFlow.API.Controllers
             await _context.SaveChangesAsync();
 
             var username = User.FindFirstValue("username") ?? "Biri";
+            var logMessage = $"{username}, '{task.Title}' görevini yeni bir listeye taşıdı.";
             await _hubContext.Clients.Group(column.BoardId.ToString()).SendAsync("BoardUpdated", username);
+
+            var activityLog = new ActivityLog
+            {
+                Id = Guid.NewGuid(),
+                BoardId = column.BoardId,
+                UserId = userId,
+                ActionType = "Taşıdı",
+                Entity = "Görev",
+                Message = logMessage,
+                CreatedAt = DateTime.UtcNow,
+            };
+
+            _context.ActivityLogs.Add(activityLog);
+            await _context.SaveChangesAsync();
 
             return Ok(new { Mesaj = "Görev konumu başarıyla güncellendi." });
         }

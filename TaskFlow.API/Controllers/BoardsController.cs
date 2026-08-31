@@ -128,6 +128,35 @@ namespace TaskFlow.API.Controllers
             return Ok(boardList);
         }
 
+        [HttpGet("{id}/logs")]
+        public async Task<IActionResult> GetBoardLogs(Guid id)
+        {
+            var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+            //bu kullanıcı bu panonun sahibi veya üyesi mi
+            var hasAccess = await _context.Boards
+                .AnyAsync(b => b.Id == id && (b.OwnerId == userId || b.Members.Any(m => m.UserId == userId)));
+
+            if (!hasAccess)
+                return Unauthorized("Bu panonun geçmişini görme yetkiniz yok.");
+
+            //logları tarihe göre sırayalıp getiriyoruz
+            var logs = await _context.ActivityLogs
+                .Where(log => log.BoardId == id)
+                .OrderByDescending(log => log.CreatedAt)
+                .Take(50)
+                .Select(log => new ActivityLogDto
+                {
+                    Id = log.Id,
+                    ActionType = log.ActionType,
+                    Entity = log.Entity,
+                    Message = log.Message,
+                    CreatedAt = log.CreatedAt,
+                })
+                .ToListAsync();
+            return Ok(logs);
+        }
+
         // POST: api/boards
         [HttpPost]
         public async Task<ActionResult<BoardDtos>> CreateBoard(CreateBoardDto createDto)
