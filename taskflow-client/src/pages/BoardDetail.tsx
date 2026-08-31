@@ -307,6 +307,7 @@ export default function BoardDetail() {
 
     if (loading) return <div className="flex h-screen items-center justify-center bg-gray-50 text-xl font-medium text-gray-500">Pano yükleniyor...</div>;
     if (error || !board) return <div className="flex h-screen flex-col items-center justify-center bg-gray-50"><div className="text-red-500 mb-4 text-lg">{error || 'Pano bulunamadı.'}</div><Link to="/dashboard" className="text-blue-600 hover:underline">Panolarıma Dön</Link></div>;
+    console.log("Bütün pano verisi:", board);
 
     return (
         <div className="flex h-screen flex-col bg-blue-600">
