@@ -390,7 +390,7 @@ export default function BoardDetail() {
                                                 ref={provided.innerRef}
                                                 {...provided.draggableProps}
                                                 style={provided.draggableProps.style}
-                                                className={`flex max-h-full flex-shrink-0 flex-col rounded-2xl bg-slate-100/90 backdrop-blur-md shadow-xl border border-white/40 transition-transform ${isMobile ? 'w-full' : 'w-72'} ${snapshot.isDragging ? 'rotate-2 scale-105 opacity-90' : ''}`}
+                                                className={`flex max-h-full flex-shrink-0 flex-col rounded-2xl bg-slate-100/95  shadow-xl border border-gray-200 ${isMobile ? 'w-full' : 'w-72'} ${snapshot.isDragging ? 'rotate-2 scale-105 opacity-90' : ''}`}
                                             >
                                                 {/* SÜTUN BAŞLIĞI */}
                                                 <div className="p-4 border-b border-gray-200/50 flex justify-between items-center bg-white/40 rounded-t-2xl group">
@@ -428,9 +428,9 @@ export default function BoardDetail() {
                                                                                 {...provided.dragHandleProps}
                                                                                 style={provided.draggableProps.style}
                                                                                 onClick={() => openTaskModal(task)}
-                                                                                className={`group relative rounded-xl p-3.5 shadow-sm border transition-show cursor-grab active:cursor-grabbing 
-                                                                                    ${isCompleted ? 'bg-slate-50/80 border-gray-200 border-l-4 border-l-emerald-500 opacity-75' : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-md hover:-translate-y-0.5'} 
-                                                                                    ${snapshot.isDragging ? 'border-blue-500 shadow-xl ring-2 ring-blue-500/20 rotate-1' : ''}`}
+                                                                                className={`group relative rounded-xl p-3.5 shadow-sm border cursor-grab active:cursor-grabbing 
+                                                                                    ${isCompleted ? 'bg-slate-50 border-gray-200 border-l-4 border-l-emerald-500 opacity-75' : 'bg-white border-gray-200 hover:border-blue-400'} 
+                                                                                    ${snapshot.isDragging ? 'border-blue-500 shadow-2xl rotate-2 opacity-100' : ''}`}
                                                                             >
                                                                                 <div className="flex items-start justify-between">
                                                                                     <h3 className={`text-sm font-semibold leading-tight ${isCompleted ? 'line-through text-gray-400' : 'text-gray-800'}`}>
