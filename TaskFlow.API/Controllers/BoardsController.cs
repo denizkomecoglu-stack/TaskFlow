@@ -59,6 +59,7 @@ namespace TaskFlow.API.Controllers
                     Title = c.Title,
                     Position = c.Position,
                     BoardId = c.BoardId,
+                    Category = (int)c.Category,
                     Tasks = c.Tasks.Select(t => new TaskItemDto
                     {
                         Id = t.Id,
