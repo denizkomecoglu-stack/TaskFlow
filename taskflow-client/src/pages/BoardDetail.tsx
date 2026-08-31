@@ -311,7 +311,7 @@ export default function BoardDetail() {
     const fetchLogs = async () => {
         try {
             const token = localStorage.getItem("token");
-            const response = await axios.get(`https://taskflow-vio5.onrender.com/api/${id}/logs`, {
+            const response = await api.get(`/Boards/${id}/logs`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setLogs(response.data);
