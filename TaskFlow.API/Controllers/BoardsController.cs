@@ -42,10 +42,30 @@ namespace TaskFlow.API.Controllers
             var board = await _context.Boards
                 .Include(b => b.Columns.OrderBy(c => c.Position))
                 .ThenInclude(c => c.Tasks.OrderBy(t => t.Position))
-                .AsSplitQuery() // sorguları 3 e bölüp sonrasında birlştirerek devasa bir sorguyu küçük şekilde hallder.
+                .ThenInclude(t => t.Assignees)
+                .ThenInclude(a => a.User)
+                .Include(b => b.Members)
+                .ThenInclude(m => m.User)
+                .Include(b => b.Owner)
+                .AsSplitQuery()
                 .FirstOrDefaultAsync(b => b.Id == id && (b.OwnerId == userId || b.Members.Any(m => m.UserId == userId)));
 
             if (board == null) return NotFound("Pano bulunamadı veya yetkiniz yok.");
+
+            var memberList = board.Members.Select(m => new MemberDto
+            {
+                Id = m.UserId.ToString(),
+                Username = m.User.Username
+            }).ToList();
+
+            if (!memberList.Any(m => m.Id == board.OwnerId.ToString()) && board.Owner != null)
+            {
+                memberList.Add(new MemberDto
+                {
+                    Id = board.OwnerId.ToString(),
+                    Username = board.Owner.Username + " (Sahibi)"
+                });
+            }
 
             var boardDto = new BoardDtos
             {
@@ -53,6 +73,7 @@ namespace TaskFlow.API.Controllers
                 Title = board.Title,
                 CreatedAt = board.CreatedAt,
                 IsOwner = board.OwnerId == userId,
+                Members = memberList,
                 Columns = board.Columns.Select(c => new ColumnDto
                 {
                     Id = c.Id,
@@ -67,7 +88,6 @@ namespace TaskFlow.API.Controllers
                         Description = t.Description,
                         Position = t.Position,
                         ColumnId = t.ColumnId,
-                        AssigneeId = t.AssigneeId
                     }).ToList()
                 }).ToList()
             };
@@ -119,7 +139,6 @@ namespace TaskFlow.API.Controllers
                                 Description = t.Description,
                                 Position = t.Position,
                                 ColumnId = t.ColumnId,
-                                AssigneeId = t.AssigneeId
                             }).ToList()
                     }).ToList()
             }).ToList();

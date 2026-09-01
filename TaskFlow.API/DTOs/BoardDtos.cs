@@ -9,6 +9,7 @@ namespace TaskFlow.API.DTOs
         public string Title { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
         public bool IsOwner { get; set; }
+        public List<MemberDto> Members { get; set; } = new List<MemberDto>();
 
         public List<ColumnDto> Columns { get; set; } = new List<ColumnDto>();
     }

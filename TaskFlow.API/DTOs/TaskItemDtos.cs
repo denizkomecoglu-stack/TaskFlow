@@ -8,7 +8,8 @@
         public string? Description { get; set; }
         public double Position { get; set; } //kartın sütun içerisindeki sırası
         public Guid ColumnId { get; set; }
-        public Guid? AssigneeId { get; set; }
+        public List<TaskAssigneeDto> Assignees { get; set; } = new List<TaskAssigneeDto>();
+
     }
 
     //Reacttan yeni görev eklenirken beklediğimiz yapı

@@ -12,9 +12,12 @@ import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 
 interface Column { id: string; title: string; position: number; category: number; boardId: string; tasks: Task[]; }
-interface Task { id: string; title: string; description?: string; position: number; columnId: string; assigneeId?: string; }
-interface Board { id: string; title: string; isOwner: boolean; columns: Column[]; }
+interface Task { id: string; title: string; description?: string; position: number; columnId: string; assignees?: TaskAssignee[]; }
+interface Board { id: string; title: string; isOwner: boolean; columns: Column[]; members?: Member[]; }
 interface ActivityLog { id: string; actionType: string; entity: string; message: string; createdAt: string; }
+interface User { id: string; username: string; email: string; }
+interface TaskAssignee { userId: string; user: User; }
+interface Member { id: string; username: string; email: string; }
 
 export default function BoardDetail() {
     const { id } = useParams<{ id: string }>();
@@ -212,6 +215,85 @@ export default function BoardDetail() {
             setBoard({ ...board, columns: updatedColumns }); //optimistic ui işlem gerçekleşmeden gerçekleşmiş varsayılıyor
             setShowDeleteConfirm(false); setEditingTask(null);
         } catch (error) { console.error(error); }
+    };
+
+    const handleAssignTask = async (taskId: string, userId: string) => {
+        try {
+            await api.post(`/Task/${taskId}/assign`, { userId });
+
+            // 1. Eklenen kişiyi panodaki mevcut üyeler arasından bul
+            const selectedMember = board?.members?.find(m => m.id === userId);
+
+            if (selectedMember) {
+                const newAssignee = { userId: userId, user: selectedMember };
+
+                // 2. Açık olan modal penceresini (editingTask) ANINDA güncelle
+                setEditingTask(prev => {
+                    if (!prev) return prev;
+                    // Zaten ekliyse çift eklemeyi önle
+                    if (prev.assignees?.some(a => a.userId === userId)) return prev;
+                    return { ...prev, assignees: [...(prev.assignees || []), newAssignee] };
+                });
+
+                // 3. Arka plandaki panoyu (görev kartlarını) ANINDA güncelle
+                setBoard(prevBoard => {
+                    if (!prevBoard) return prevBoard;
+                    return {
+                        ...prevBoard,
+                        columns: prevBoard.columns.map(col => ({
+                            ...col,
+                            tasks: col.tasks.map(task => {
+                                if (task.id === taskId) {
+                                    // Zaten ekliyse aynen bırak, değilse ekle
+                                    if (task.assignees?.some(a => a.userId === userId)) return task;
+                                    return { ...task, assignees: [...(task.assignees || []), newAssignee] };
+                                }
+                                return task;
+                            })
+                        }))
+                    };
+                });
+            }
+        } catch (error) {
+            console.error("❌ Atama Hatası:", error); 
+        }
+    };
+
+    const handleRemoveAssignee = async (taskId: string, userId: string) => {
+        try {
+            await api.delete(`/Task/${taskId}/assign/${userId}`);
+
+            // 1. Modaldan ANINDA sil
+            setEditingTask(prev => {
+                if (!prev) return prev;
+                return {
+                    ...prev,
+                    assignees: prev.assignees?.filter(a => a.userId !== userId) || []
+                };
+            });
+
+            // 2. Arka plandaki görev kartından ANINDA sil
+            setBoard(prevBoard => {
+                if (!prevBoard) return prevBoard;
+                return {
+                    ...prevBoard,
+                    columns: prevBoard.columns.map(col => ({
+                        ...col,
+                        tasks: col.tasks.map(task => {
+                            if (task.id === taskId) {
+                                return {
+                                    ...task,
+                                    assignees: task.assignees?.filter(a => a.userId !== userId) || []
+                                };
+                            }
+                            return task;
+                        })
+                    }))
+                };
+            });
+        } catch (error) {
+            console.error("❌ Silme Hatası:", error);
+        }
     };
 
     const handleAddColumn = async (e: React.FormEvent) => {
@@ -447,6 +529,19 @@ export default function BoardDetail() {
                                                                                         {task.description}
                                                                                     </p>
                                                                                 )}
+                                                                                {task.assignees && task.assignees.length > 0 && (
+                                                                                    <div className="mt-3 flex justify-end gap-1">
+                                                                                        {task.assignees.map(assignee => (
+                                                                                            <div
+                                                                                                key={assignee.userId}
+                                                                                                title={assignee.user?.username}
+                                                                                                className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 border border-blue-200 text-[10px] font-bold text-blue-700 shadow-sm"
+                                                                                            >
+                                                                                                {assignee.user?.username?.substring(0, 2).toUpperCase()}
+                                                                                            </div>
+                                                                                        ))}
+                                                                                    </div>
+                                                                                )}
                                                                             </div>
                                                                         )}
                                                                     </Draggable>
@@ -553,6 +648,38 @@ export default function BoardDetail() {
                             <div className="mb-6">
                                 <label className="mb-1.5 block text-sm font-medium text-gray-700">Açıklama</label>
                                 <textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} rows={4} className="w-full resize-none rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none" />
+                            </div>
+                            <div className="mb-6">
+                                <label className="mb-1.5 block text-sm font-medium text-gray-700">Kişi ata</label>
+                                <div className="flex gap-2">
+                                    <select
+                                        className="flex-1 rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:outline-none"
+                                        onChange={(e) => {
+                                            if (e.target.value) handleAssignTask(editingTask.id, e.target.value);
+                                            e.target.value = "";
+                                        }}
+                                    >
+                                        <option value="">+ Yeni kişi seç....</option>
+                                        {board?.members?.map(member => (
+                                            <option key={member.id} value={member.id}>{member.username}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                {/*zaten atanmış olanları listeleme ve çıkarma butonu */}
+                                <div className="mt-3 flex flex-wrap gap-2">
+                                    {editingTask.assignees?.map(assignee => (
+                                         <span key={assignee.userId} className="flex items-center gap-1 rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 border border-blue-200">
+                                            {assignee.user?.username}
+                                            <button
+                                                type="button"
+                                                onClick={() => handleRemoveAssignee(editingTask.id, assignee.userId)}
+                                                className="ml-1 text-blue-400 hover:text-red-500 font-bold"
+                                            >
+                                                &times;
+                                            </button>
+                                        </span>
+                                    ))}
+                                </div>
                             </div>
                             <div className="flex items-center justify-between">
                                 <button type="button" onClick={() => setShowDeleteConfirm(true)} className="rounded-lg bg-red-50 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-100 transition">Sil</button>

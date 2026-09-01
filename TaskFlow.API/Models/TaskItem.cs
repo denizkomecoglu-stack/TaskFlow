@@ -14,5 +14,7 @@
         //Kime atandı? atanmamış da olabilir o yüzden nullable
         public Guid? AssigneeId { get; set; }
         public User? Assignee { get; set; }
+        public ICollection<TaskAssignee> Assignees { get; set; } = new List<TaskAssignee>();
+
     }
 }

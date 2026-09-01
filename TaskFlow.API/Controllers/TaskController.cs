@@ -18,6 +18,11 @@ namespace TaskFlow.API.Controllers
         private readonly AppDbContext _context;
         private readonly IHubContext<BoardHub> _hubContext; // YENİ: Merkez İstasyon Telsizi
 
+    public class AssignUserDto
+    {
+            public Guid UserId { get; set; }
+    }
+
         // Telsizimizi (hubContext) yapılandırıcıya ekledik
         public TaskController(AppDbContext context, IHubContext<BoardHub> hubContext)
         {
@@ -50,7 +55,6 @@ namespace TaskFlow.API.Controllers
                     Description = t.Description,
                     Position = t.Position,
                     ColumnId = t.ColumnId,
-                    AssigneeId = t.AssigneeId
                 })
                 .ToListAsync();
             return Ok(tasks);
@@ -94,11 +98,41 @@ namespace TaskFlow.API.Controllers
                 Title = newTask.Title,
                 Description = newTask.Description,
                 Position = newTask.Position,
-                ColumnId = newTask.ColumnId,
-                AssigneeId = newTask.AssigneeId
+                ColumnId = newTask.ColumnId
             };
 
             return Ok(taskDto);
+        }
+
+        [HttpPost("{taskId}/assign")]
+        public async Task<IActionResult> AssignUser(Guid taskId, [FromBody] AssignUserDto dto)
+        {
+            var task = await _context.Tasks.FindAsync(taskId);
+            if (task == null) return NotFound("Görev bulunamadı.");
+
+            //kullanıcı atanmış mı kontrolü
+            var exist = await _context.TaskAssignees.AnyAsync(ta => ta.TaskId == taskId && ta.UserId == dto.UserId);
+            if (exist) return BadRequest("Kullanıcı zaten atanmış.");
+
+            var assignee = new TaskAssignee
+            {
+                TaskId = taskId,
+                UserId = dto.UserId
+            };
+            _context.TaskAssignees.Add(assignee);
+            await _context.SaveChangesAsync();
+            return Ok(new { Message = "Kullanıcı başarıyla atandı." });
+        }
+
+        [HttpDelete("{taskId}/unassign/{userId}")]
+        public async Task<IActionResult> RemoveAssignee(Guid taskId, Guid userId)
+        {
+            var assignee = await _context.TaskAssignees.FirstOrDefaultAsync(ta => ta.TaskId == taskId && ta.UserId == userId);
+            if (assignee == null) return NotFound("Kullanıcı görevden ayrılmadı.");
+
+            _context.TaskAssignees.Remove(assignee);
+            await _context.SaveChangesAsync();
+            return Ok(new { Message = "Kullanıcı görevden çıkarıldı." });
         }
 
         // PUT: Görev Konumunu Güncelle (Sürükle - Bırak)

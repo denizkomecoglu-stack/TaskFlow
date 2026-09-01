@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TaskFlow.API.Data;
@@ -11,9 +12,11 @@ using TaskFlow.API.Data;
 namespace TaskFlow.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260901065326_AddTaskAssignees")]
+    partial class AddTaskAssignees
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -264,7 +267,7 @@ namespace TaskFlow.API.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("TaskFlow.API.Models.User", "User")
+                    b.HasOne("TaskFlow.API.Models.User", "USer")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -272,7 +275,7 @@ namespace TaskFlow.API.Migrations
 
                     b.Navigation("Task");
 
-                    b.Navigation("User");
+                    b.Navigation("USer");
                 });
 
             modelBuilder.Entity("TaskFlow.API.Models.TaskItem", b =>

@@ -13,7 +13,7 @@ public class AppDbContext : DbContext
     public DbSet<Column> Columns { get; set; }
     public DbSet<TaskItem> Tasks { get; set; }
     public DbSet<ActivityLog> ActivityLogs { get; set; }
-
+    public DbSet<TaskAssignee> TaskAssignees { get; set; }
     public DbSet<BoardMember> BoardMembers { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -50,5 +50,14 @@ public class AppDbContext : DbContext
             .WithMany(b => b.Members)
             .HasForeignKey(bm => bm.BoardId)
             .OnDelete(DeleteBehavior.Cascade); //pano silinirse üyeleri de tablodan sil
+
+        modelBuilder.Entity<TaskAssignee>()
+            //bir kişi bir göreve birden fazla kez atanamaz, bu yüzden composite key kullanıyoruz
+            .HasKey(ta => new { ta.TaskId, ta.UserId });
+            
+        modelBuilder.Entity<TaskAssignee>()
+            .HasOne(ta => ta.Task)
+            .WithMany(t => t.Assignees)
+            .HasForeignKey(ta => ta.TaskId);
     }
 }
