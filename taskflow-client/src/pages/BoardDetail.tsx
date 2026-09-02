@@ -859,7 +859,7 @@ export default function BoardDetail() {
                                     </div>
                                     <div className="flex gap-3">
                                     <button type="button" onClick={() => setEditingTask(null)} className="text-gray-600 px-4 py-2 hover:bg-gray-100 rounded-md transition">İptal</button>
-                                        <button type="submit" className="rounded-lg bg-blue-600 px-6 py-2 rounded-md hover:bg-blue-700 transition">Kaydet</button>
+                                        <button type="submit" className="rounded-lg bg-blue-600 px-4 py-2 rounded-md hover:bg-blue-700 transition">Kaydet</button>
                                     </div>
                                 </div>
                             </div>
