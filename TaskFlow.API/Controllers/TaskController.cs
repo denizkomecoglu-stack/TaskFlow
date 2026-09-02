@@ -124,7 +124,7 @@ namespace TaskFlow.API.Controllers
             return Ok(new { Message = "Kullanıcı başarıyla atandı." });
         }
 
-        [HttpDelete("{taskId}/unassign/{userId}")]
+        [HttpDelete("{taskId}/assign/{userId}")]
         public async Task<IActionResult> RemoveAssignee(Guid taskId, Guid userId)
         {
             var assignee = await _context.TaskAssignees.FirstOrDefaultAsync(ta => ta.TaskId == taskId && ta.UserId == userId);
