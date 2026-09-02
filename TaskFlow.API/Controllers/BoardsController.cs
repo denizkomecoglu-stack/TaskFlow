@@ -88,6 +88,15 @@ namespace TaskFlow.API.Controllers
                         Description = t.Description,
                         Position = t.Position,
                         ColumnId = t.ColumnId,
+                        Assignees = t.Assignees.Select(a => new TaskAssigneeDto
+                        {
+                            UserId = a.UserId.ToString(),
+                            User = new MemberDto
+                            {
+                                Id = a.UserId.ToString(),
+                                Username = a.User.Username
+                            }
+                        }).ToList()
                     }).ToList()
                 }).ToList()
             };
