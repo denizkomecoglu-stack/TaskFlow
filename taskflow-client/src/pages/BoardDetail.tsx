@@ -756,7 +756,7 @@ export default function BoardDetail() {
 
             {editingTask && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-                    <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+                    <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl">
                         <div className="mb-5 flex items-center justify-between">
                             <h2 className="text-xl font-bold text-gray-800">Kart Detayı</h2>
                             <button onClick={() => setEditingTask(null)} className="text-gray-400 hover:text-gray-700 text-2xl leading-none">&times;</button>
@@ -811,22 +811,22 @@ export default function BoardDetail() {
                                     ))}
                                 </div>
                             </div>
-                            <div className="flex items-center justify-between">
-                                <button type="button" onClick={() => setShowDeleteConfirm(true)} className="rounded-lg bg-red-50 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-100 transition">Sil</button>
+                            <div className="mt-8 pt-4 flex justify-between items-center border-t border-gray-200">
+                                <button type="button" onClick={() => setShowDeleteConfirm(true)} className="bg-red-50 text-red-600 px-4 py-2 rounded-md hover:bg-red-100 transition">Sil</button>
                                 <div className="flex gap-2">
                                     {/* YORUMLAR BÖLÜMÜ */}
-                                    <div className="mt-6 border-t pt-4">
-                                        <h3 className="text-sm font-medium text-gray-700 mb-3">Yorumlar</h3>
+                                    <div className="mt-8 border-t border-gray-200 pt-6">
+                                        <h3 className="text-sm font-semibold text-gray-700 mb-4">Yorumlar</h3>
 
                                         {/* Yorum Listesi */}
-                                        <div className="space-y-3 mb-4 max-h-48 overflow-y-auto pr-2">
+                                        <div className="space-y-4 mb-4 max-h-60 overflow-y-auto pr-2">
                                             {editingTask.comments && editingTask.comments.length > 0 ? (
                                                 editingTask.comments.map(comment => (
                                                     <div key={comment.id} className="bg-gray-50 border border-gray-100 p-3 rounded-md">
                                                         <div className="flex justify-between items-center mb-1">
                                                             <span className="text-xs font-bold text-gray-800">{comment.user.username}</span>
                                                             <span className="text-xs text-gray-400">
-                                                                {new Date(comment.createdat).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                                                                {comment.createdat ? new Date(comment.createdat).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'}) : ''}
                                                             </span>
                                                         </div>
                                                         <p className="text-sm text-gray-600">{comment.content}</p>
@@ -857,8 +857,10 @@ export default function BoardDetail() {
                                             </button>
                                         </div>
                                     </div>
-                                    <button type="button" onClick={() => setEditingTask(null)} className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 transition">İptal</button>
-                                    <button type="submit" className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition shadow-sm">Kaydet</button>
+                                    <div className="flex gap-3">
+                                    <button type="button" onClick={() => setEditingTask(null)} className="text-gray-600 px-4 py-2 hover:bg-gray-100 rounded-md transition">İptal</button>
+                                        <button type="submit" className="rounded-lg bg-blue-600 px-6 py-2 rounded-md hover:bg-blue-700 transition">Kaydet</button>
+                                    </div>
                                 </div>
                             </div>
                         </form>
