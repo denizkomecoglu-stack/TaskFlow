@@ -15,6 +15,7 @@ public class AppDbContext : DbContext
     public DbSet<ActivityLog> ActivityLogs { get; set; }
     public DbSet<TaskAssignee> TaskAssignees { get; set; }
     public DbSet<BoardMember> BoardMembers { get; set; }
+    public DbSet<TaskComment> TaskComments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

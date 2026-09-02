@@ -17,6 +17,7 @@
         public Guid? AssigneeId { get; set; }
         public User? Assignee { get; set; }
         public ICollection<TaskAssignee> Assignees { get; set; } = new List<TaskAssignee>();
+        public ICollection<TaskComment> Comments { get; set; } = new List<TaskComment>();
 
     }
 }

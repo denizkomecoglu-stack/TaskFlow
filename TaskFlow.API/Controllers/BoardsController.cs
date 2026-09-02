@@ -44,6 +44,10 @@ namespace TaskFlow.API.Controllers
                 .ThenInclude(c => c.Tasks.OrderBy(t => t.Position))
                 .ThenInclude(t => t.Assignees)
                 .ThenInclude(a => a.User)
+                .Include(b => b.Columns)
+                .ThenInclude(c => c.Tasks)
+                .ThenInclude(t => t.Comments)
+                .ThenInclude(c => c.User)
                 .Include(b => b.Members)
                 .ThenInclude(m => m.User)
                 .Include(b => b.Owner)
@@ -89,6 +93,17 @@ namespace TaskFlow.API.Controllers
                         Position = t.Position,
                         ColumnId = t.ColumnId,
                         DueDate = t.DueDate,
+                        Comments = t.Comments.Select(cm => new TaskCommentDto
+                        {
+                            Id = cm.Id,
+                            Content = cm.Content,
+                            CreatedAt = cm.CreatedAt,
+                            User = new MemberDto
+                            {
+                                Id = cm.UserId.ToString(),
+                                Username = cm.User.Username
+                            }
+                        }).OrderBy(cm => cm.CreatedAt).ToList(),
                         Assignees = t.Assignees.Select(a => new TaskAssigneeDto
                         {
                             UserId = a.UserId.ToString(),
@@ -121,7 +136,19 @@ namespace TaskFlow.API.Controllers
                 .Include(b => b.Columns)
                     .ThenInclude(c => c.Tasks)
                 .AsSplitQuery()
+                .Include(b => b.Columns.OrderBy(c => c.Position))
+                .ThenInclude(c => c.Tasks.OrderBy(t => t.Position))
+                .ThenInclude(t => t.Assignees)
+                .ThenInclude(a => a.User)
+                .Include(b => b.Columns)
+                .ThenInclude(c => c.Tasks)
+                .ThenInclude(t => t.Comments)
+                .ThenInclude(c => c.User)
+                .Include(b => b.Members)
+                .ThenInclude(m => m.User)
+                .Include(b => b.Owner)
                 .OrderByDescending(b => b.CreatedAt)
+                .AsSplitQuery()
                 .ToListAsync();
 
             // DÜZELTME 2: Çekilen veriyi DTO'ya haritalıyoruz
@@ -149,7 +176,28 @@ namespace TaskFlow.API.Controllers
                                 Description = t.Description,
                                 Position = t.Position,
                                 ColumnId = t.ColumnId,
-                                DueDate = t.DueDate
+                                DueDate = t.DueDate,
+                                Comments = t.Comments.Select(cm => new TaskCommentDto
+                                {
+                                    Id = cm.Id,
+                                    Content = cm.Content,
+                                    CreatedAt = cm.CreatedAt,
+                                    User = new MemberDto
+                                    {
+                                        Id = cm.UserId.ToString(),
+                                        Username = cm.User.Username
+                                    }
+                                }).OrderBy(cm => cm.CreatedAt).ToList(),
+                                
+                                Assignees = t.Assignees.Select(a => new TaskAssigneeDto
+                                {
+                                    UserId = a.UserId.ToString(),
+                                    User = new MemberDto
+                                    {
+                                        Id = a.UserId.ToString(),
+                                        Username = a.User.Username
+                                    }
+                                }).ToList()
                             }).ToList()
                     }).ToList()
             }).ToList();

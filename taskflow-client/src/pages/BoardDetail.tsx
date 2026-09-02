@@ -12,12 +12,13 @@ import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 
 interface Column { id: string; title: string; position: number; category: number; boardId: string; tasks: Task[]; }
-interface Task { id: string; title: string; description?: string; position: number; columnId: string; assignees?: TaskAssignee[]; dueDate?: string | null; }
+interface Task { id: string; title: string; description?: string; position: number; columnId: string; assignees?: TaskAssignee[]; dueDate?: string | null; comments?: TaskComment[]; }
 interface Board { id: string; title: string; isOwner: boolean; columns: Column[]; members?: Member[]; }
 interface ActivityLog { id: string; actionType: string; entity: string; message: string; createdAt: string; }
 interface User { id: string; username: string; email: string; }
 interface TaskAssignee { userId: string; user: User; }
 interface Member { id: string; username: string; email: string; }
+interface TaskComment { id: string; content: string; createdat: string; user: { id: string; username: string; }; }
 
 export default function BoardDetail() {
     const { id } = useParams<{ id: string }>();
@@ -29,6 +30,7 @@ export default function BoardDetail() {
     const navigate = useNavigate();
     const [isLogOpen, setIsLogOpen] = useState(false);
     const [logs, setLogs] = useState<ActivityLog[]>([]);
+    const [newComment, setNewComment] = useState("");
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -353,6 +355,53 @@ export default function BoardDetail() {
             console.error("Görev güncellenirken hata:", error);
         }
     };
+
+    // YENİ YORUM EKLEME FONKSİYONU
+    const handleAddComment = async () => {
+        // Yorum boşsa veya açık bir görev yoksa işlemi durdur
+        if (!newComment.trim() || !editingTask) return;
+
+        try {
+            // 1. C# API'ye yorumu gönder
+            const response = await api.post(`/Task/${editingTask.id}/comments`, {
+                content: newComment
+            });
+
+            const addedComment = response.data; // C#'tan geri dönen DTO
+
+            // 2. Modalı (Açık olan pencereyi) anında güncelle
+            setEditingTask(prev => {
+                if (!prev) return prev;
+                return {
+                    ...prev,
+                    comments: [...(prev.comments || []), addedComment]
+                };
+            });
+
+            // 3. Arka plandaki panoyu (Board) anında güncelle
+            setBoard(prevBoard => {
+                if (!prevBoard) return prevBoard;
+                return {
+                    ...prevBoard,
+                    columns: prevBoard.columns.map(col => ({
+                        ...col,
+                        tasks: col.tasks.map(task =>
+                            task.id === editingTask.id
+                                ? { ...task, comments: [...(task.comments || []), addedComment] }
+                                : task
+                        )
+                    }))
+                };
+            });
+
+            // 4. Input kutusunu temizle
+            setNewComment("");
+
+        } catch (error) {
+            console.error("Yorum eklenirken hata:", error);
+        }
+    };
+        
 
     const handleAddColumn = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -765,6 +814,49 @@ export default function BoardDetail() {
                             <div className="flex items-center justify-between">
                                 <button type="button" onClick={() => setShowDeleteConfirm(true)} className="rounded-lg bg-red-50 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-100 transition">Sil</button>
                                 <div className="flex gap-2">
+                                    {/* YORUMLAR BÖLÜMÜ */}
+                                    <div className="mt-6 border-t pt-4">
+                                        <h3 className="text-sm font-medium text-gray-700 mb-3">Yorumlar</h3>
+
+                                        {/* Yorum Listesi */}
+                                        <div className="space-y-3 mb-4 max-h-48 overflow-y-auto pr-2">
+                                            {editingTask.comments && editingTask.comments.length > 0 ? (
+                                                editingTask.comments.map(comment => (
+                                                    <div key={comment.id} className="bg-gray-50 border border-gray-100 p-3 rounded-md">
+                                                        <div className="flex justify-between items-center mb-1">
+                                                            <span className="text-xs font-bold text-gray-800">{comment.user.username}</span>
+                                                            <span className="text-xs text-gray-400">
+                                                                {new Date(comment.createdat).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-sm text-gray-600">{comment.content}</p>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <p className="text-xs text-gray-400 italic">Henüz yorum yapılmamış.</p>
+                                            )}
+                                        </div>
+
+                                        {/* Yorum Ekleme Kutusu */}
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                value={newComment}
+                                                onChange={(e) => setNewComment(e.target.value)}
+                                                onKeyDown={(e) => { if (e.key === 'Enter') handleAddComment(); }} // Enter ile gönderme
+                                                placeholder="Bir yorum yazın..."
+                                                className="flex-1 border border-gray-300 rounded-md p-2 text-sm focus:ring-blue-500 focus:border-blue-500"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={handleAddComment}
+                                                disabled={!newComment.trim()} // Kutucuk boşsa butonu pasif yap
+                                                className="bg-gray-800 text-white px-4 py-2 rounded-md text-sm hover:bg-gray-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                Gönder
+                                            </button>
+                                        </div>
+                                    </div>
                                     <button type="button" onClick={() => setEditingTask(null)} className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 transition">İptal</button>
                                     <button type="submit" className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition shadow-sm">Kaydet</button>
                                 </div>

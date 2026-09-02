@@ -23,6 +23,11 @@ namespace TaskFlow.API.Controllers
             public Guid UserId { get; set; }
     }
 
+    public class CreateCommentDto
+    {
+      public string Content { get; set; }
+        }
+
         // Telsizimizi (hubContext) yapılandırıcıya ekledik
         public TaskController(AppDbContext context, IHubContext<BoardHub> hubContext)
         {
@@ -122,6 +127,30 @@ namespace TaskFlow.API.Controllers
             _context.TaskAssignees.Add(assignee);
             await _context.SaveChangesAsync();
             return Ok(new { Message = "Kullanıcı başarıyla atandı." });
+        }
+
+        [HttpPost("{taskId}/comments")]
+        public async Task<IActionResult> AddComment(Guid taskId, [FromBody] CreateCommentDto dto)
+        {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userIdString == null) return Unauthorized("Kullanıcı kimliği bulunamadı.");
+            var comment = new TaskComment
+            {
+                TaskId = taskId,
+                UserId = Guid.Parse(userIdString),
+                Content = dto.Content,
+            };
+            _context.TaskComments.Add(comment);
+            await _context.SaveChangesAsync();
+
+            var user = await _context.Users.FindAsync(comment.UserId);
+            return Ok(new TaskCommentDto
+            {
+                Id = comment.Id,
+                Content = comment.Content,
+                CreatedAt = comment.CreatedAt,
+                User = new MemberDto { Id = user.Id.ToString(), Username = user.Username }
+            });
         }
 
         [HttpDelete("{taskId}/assign/{userId}")]

@@ -10,6 +10,7 @@
         public Guid ColumnId { get; set; }
         public DateTime? DueDate { get; set; }
         public List<TaskAssigneeDto> Assignees { get; set; } = new List<TaskAssigneeDto>();
+        public List<TaskCommentDto> Comments { get; set; } = new List<TaskCommentDto>();
 
     }
 
