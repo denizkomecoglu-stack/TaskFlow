@@ -857,9 +857,9 @@ export default function BoardDetail() {
                                             </button>
                                         </div>
                                     </div>
-                                    <div className="flex gap-3">
-                                    <button type="button" onClick={() => setEditingTask(null)} className="text-gray-600 px-4 py-2 hover:bg-gray-100 rounded-md transition">İptal</button>
-                                        <button type="submit" className="rounded-lg bg-blue-600 px-4 py-2 rounded-md hover:bg-blue-700 transition">Kaydet</button>
+                                    <div className="flex items-center gap-3">
+                                        <button type="button" onClick={() => setEditingTask(null)} className="h-10 px-4 flex items-center justify-center rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-offset-1">İptal</button>
+                                        <button type="submit" className="h-10 px-6 flex items-center justify-center rounded-lg bg-blue-600 text-sm font-medium text-white hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 shadow-sm">Kaydet</button>
                                     </div>
                                 </div>
                             </div>
