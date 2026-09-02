@@ -12,7 +12,7 @@ import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 
 interface Column { id: string; title: string; position: number; category: number; boardId: string; tasks: Task[]; }
-interface Task { id: string; title: string; description?: string; position: number; columnId: string; assignees?: TaskAssignee[]; }
+interface Task { id: string; title: string; description?: string; position: number; columnId: string; assignees?: TaskAssignee[]; dueDate?: string | null; }
 interface Board { id: string; title: string; isOwner: boolean; columns: Column[]; members?: Member[]; }
 interface ActivityLog { id: string; actionType: string; entity: string; message: string; createdAt: string; }
 interface User { id: string; username: string; email: string; }
@@ -53,6 +53,7 @@ export default function BoardDetail() {
 
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [copied, setCopied] = useState(false);
+    const [editDueDate, setEditDueDate] = useState<string>("");
 
     // 1. KUSURSUZ FETCH FONKSİYONU (useCallback ile hafızaya alındı)
     const fetchBoardDetails = useCallback(async () => {
@@ -180,6 +181,28 @@ export default function BoardDetail() {
         }
     };
 
+    const getDueDateStyles = (dueDate?: string | null, columnCategory?: number) => {
+        if (!dueDate) return null; //tarih yoksa stil yok
+
+        if (columnCategory === 4) {
+            return { text: "Tamamlandı", style: "bg-green-100 text-green-700 line-through"}; 
+        }
+        const now = new Date();
+        const due = new Date(dueDate);
+        const diffHours = (due.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+        //tarihi format
+        const formattedDate = due.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+
+        if (diffHours <= 24) {
+            return { text: formattedDate, style: "bg-red-100 text-red-700 font-bold border border-red-300"}; //kırmızı"
+        } else if (diffHours <= 72) {
+            return { text: formattedDate, style: "bg-yellow-100 text-yellow-800" }; //sarı
+        } else {
+            return { text: formattedDate, style: "bg-gray-100 text-gray-600" }; 
+        }
+    };
+
     const handleAddTask = async (e: React.FormEvent, columnId: string) => {
         e.preventDefault();
         if (!newTaskTitle.trim() || !board) return;
@@ -194,7 +217,7 @@ export default function BoardDetail() {
         } catch (error) { console.error(error); }
     };
 
-    const openTaskModal = (task: Task) => { setEditingTask(task); setEditTitle(task.title); setEditDescription(task.description || ''); setShowDeleteConfirm(false); };
+    const openTaskModal = (task: Task) => { setEditingTask(task); setEditTitle(task.title || ''); setEditDescription(task.description || ''); setEditDueDate(task.dueDate ? new Date(task.dueDate).toISOString().slice(0, 16) : ''); setShowDeleteConfirm(false); };
 
     const confirmDeleteTask = async () => {
         if (!editingTask || !board) return;
@@ -292,7 +315,8 @@ export default function BoardDetail() {
         try {
             await api.put(`/Task/${editingTask.id}`, {
                 title: editTitle,
-                description: editDescription
+                description: editDescription,
+                dueDate: editDueDate ? new Date(editDueDate).toISOString() : null
             });
 
             // Atamaları (assignees) EZMEDEN arka planı güncelliyoruz
@@ -310,7 +334,8 @@ export default function BoardDetail() {
                                     return {
                                         ...task,
                                         title: editTitle,
-                                        description: editDescription
+                                        description: editDescription,
+                                        dueDate: editDueDate ? new Date(editDueDate).toISOString() : null
                                     };
                                 }
                                 // Diğer görevlere dokunma aynen geri döndür
@@ -562,6 +587,20 @@ export default function BoardDetail() {
                                                                                         {task.description}
                                                                                     </p>
                                                                                 )}
+                                                                                {/* Görev kartının içindeki uygun bir yere (örn: başlığın altına veya atanmış kişilerin yanına) */}
+                                                                                {task.dueDate && (
+                                                                                    <div className="mt-2 mb-1">
+                                                                                        {(() => {
+                                                                                            const dueInfo = getDueDateStyles(task.dueDate, column.category); // col.category kolonun durumunu belirtir
+                                                                                            if (!dueInfo) return null;
+                                                                                            return (
+                                                                                                <span className={`text-xs px-2 py-1 rounded-md ${dueInfo.style}`}>
+                                                                                                    ⏳ {dueInfo.text}
+                                                                                                </span>
+                                                                                            );
+                                                                                        })()}
+                                                                                    </div>
+                                                                                )}
                                                                                 {task.assignees && task.assignees.length > 0 && (
                                                                                     <div className="mt-3 flex justify-end gap-1">
                                                                                         {task.assignees.map(assignee => (
@@ -681,6 +720,15 @@ export default function BoardDetail() {
                             <div className="mb-6">
                                 <label className="mb-1.5 block text-sm font-medium text-gray-700">Açıklama</label>
                                 <textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} rows={4} className="w-full resize-none rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none" />
+                            </div>
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Bitiş Tarihi</label>
+                                <input
+                                    type="datetime-local"
+                                    value={editDueDate}
+                                    onChange={(e) => setEditDueDate(e.target.value)}
+                                    className="w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500"
+                                />
                             </div>
                             <div className="mb-6">
                                 <label className="mb-1.5 block text-sm font-medium text-gray-700">Kişi ata</label>

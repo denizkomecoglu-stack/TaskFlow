@@ -8,6 +8,8 @@
         public double Position { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+        public DateTime? DueDate { get; set; }
+
         //Hangi sütunda?
         public Guid ColumnId { get; set; }
         public Column Column { get; set; } = null!;

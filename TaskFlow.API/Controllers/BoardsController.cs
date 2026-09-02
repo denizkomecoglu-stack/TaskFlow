@@ -148,6 +148,7 @@ namespace TaskFlow.API.Controllers
                                 Description = t.Description,
                                 Position = t.Position,
                                 ColumnId = t.ColumnId,
+                                DueDate = t.DueDate
                             }).ToList()
                     }).ToList()
             }).ToList();

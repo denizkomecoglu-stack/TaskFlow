@@ -8,6 +8,7 @@
         public string? Description { get; set; }
         public double Position { get; set; } //kartın sütun içerisindeki sırası
         public Guid ColumnId { get; set; }
+        public DateTime? DueDate { get; set; }
         public List<TaskAssigneeDto> Assignees { get; set; } = new List<TaskAssigneeDto>();
 
     }

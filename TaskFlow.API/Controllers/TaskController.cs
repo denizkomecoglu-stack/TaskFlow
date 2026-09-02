@@ -204,6 +204,7 @@ namespace TaskFlow.API.Controllers
 
             task.Title = dto.Title;
             task.Description = dto.Description;
+            task.DueDate = dto.DueDate;
             await _context.SaveChangesAsync();
 
             var username = User.FindFirstValue("username") ?? "Biri";
