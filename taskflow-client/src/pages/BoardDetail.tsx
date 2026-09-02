@@ -196,17 +196,6 @@ export default function BoardDetail() {
 
     const openTaskModal = (task: Task) => { setEditingTask(task); setEditTitle(task.title); setEditDescription(task.description || ''); setShowDeleteConfirm(false); };
 
-    const handleUpdateTask = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!editingTask || !editTitle.trim() || !board) return;
-        try {
-            await api.put(`/Task/${editingTask.id}`, { title: editTitle, description: editDescription });
-            const updatedColumns = board.columns.map(col => col.id === editingTask.columnId ? { ...col, tasks: col.tasks.map(t => t.id === editingTask.id ? { ...t, title: editTitle, description: editDescription } : t) } : col);
-            setBoard({ ...board, columns: updatedColumns });
-            setEditingTask(null);
-        } catch (error) { console.error(error); }
-    };
-
     const confirmDeleteTask = async () => {
         if (!editingTask || !board) return;
         try {
@@ -293,6 +282,50 @@ export default function BoardDetail() {
             });
         } catch (error) {
             console.error("❌ Silme Hatası:", error);
+        }
+    };
+
+    const handleUpdateTask = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingTask) return;
+
+        try {
+            await api.put(`/Task/${editingTask.id}`, {
+                title: editTitle,
+                description: editDescription
+            });
+
+            // Atamaları (assignees) EZMEDEN arka planı güncelliyoruz
+            setBoard((prevBoard) => {
+                if (!prevBoard) return prevBoard;
+
+                return {
+                    ...prevBoard,
+                    columns: prevBoard.columns.map((col) => {
+                        return {
+                            ...col,
+                            tasks: col.tasks.map((task) => {
+                                // Eğer güncellediğimiz görev ise, başlık ve açıklamayı değiştir
+                                if (task.id === editingTask.id) {
+                                    return {
+                                        ...task,
+                                        title: editTitle,
+                                        description: editDescription
+                                    };
+                                }
+                                // Diğer görevlere dokunma aynen geri döndür
+                                return task;
+                            })
+                        };
+                    })
+                };
+            });
+
+            // Modalı sorunsuz şekilde kapatıyoruz
+            setEditingTask(null);
+
+        } catch (error) {
+            console.error("Görev güncellenirken hata:", error);
         }
     };
 
