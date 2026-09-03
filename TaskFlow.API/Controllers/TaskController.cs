@@ -153,6 +153,21 @@ namespace TaskFlow.API.Controllers
             });
         }
 
+        [HttpDelete("{taskId}/comments/{commentId}")]
+        public async Task<IActionResult> DeleteComment(Guid taskId, Guid commentId)
+        {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userIdString == null) return Unauthorized("Kullanıcı kimliği bulunamadı.");
+
+            var comment = await _context.TaskComments.FirstOrDefaultAsync(c => c.Id == commentId && c.TaskId == taskId);
+            if(comment == null) return NotFound("Yorum bulunamadı.");
+
+            if (comment.UserId.ToString() != userIdString) return Forbid("Bu yorumu silme yetkiniz yok.");
+            _context.TaskComments.Remove(comment);
+            await _context.SaveChangesAsync();
+            return Ok(new { Message = "Yorum başarıyla silindi." });
+        }
+
         [HttpDelete("{taskId}/assign/{userId}")]
         public async Task<IActionResult> RemoveAssignee(Guid taskId, Guid userId)
         {

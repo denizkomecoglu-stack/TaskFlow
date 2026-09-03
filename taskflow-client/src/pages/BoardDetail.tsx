@@ -401,6 +401,42 @@ export default function BoardDetail() {
             console.error("Yorum eklenirken hata:", error);
         }
     };
+
+    const handleDeleteComment = async (commentId: string) => {
+        if (!window.confirm("Bu yorumu silmek istediğinize emin misiniz?")) return;
+
+        try {
+            await api.delete(`/Task/${editingTask?.id}/comments/${commentId}`);
+
+            // Ekranda yorumu anında kaldır (Optimistic UI)
+            setEditingTask(prev => {
+                if (!prev) return prev;
+                return {
+                    ...prev,
+                    comments: prev.comments?.filter(c => c.id !== commentId)
+                };
+            });
+
+            // Pano verisini (Board) güncelle
+            setBoard(prevBoard => {
+                if (!prevBoard) return prevBoard;
+                return {
+                    ...prevBoard,
+                    columns: prevBoard.columns.map(col => ({
+                        ...col,
+                        tasks: col.tasks.map(task =>
+                            task.id === editingTask?.id
+                                ? { ...task, comments: task.comments?.filter(c => c.id !== commentId) }
+                                : task
+                        )
+                    }))
+                };
+            });
+
+        } catch (error) {
+            console.error("Yorum silinirken hata:", error);
+        }
+    };
         
 
     const handleAddColumn = async (e: React.FormEvent) => {
@@ -847,9 +883,19 @@ export default function BoardDetail() {
                                                         <div key={comment.id} className="bg-gray-50 border border-gray-200 p-3 rounded-lg shadow-sm">
                                                             <div className="flex justify-between items-center mb-2">
                                                                 <span className="text-xs font-bold text-gray-800">{comment.user.username}</span>
-                                                                <span className="text-xs text-gray-400">
-                                                                    {dateVal ? new Date(dateVal).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}
-                                                                </span>
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="text-xs text-gray-400">
+                                                                        {dateVal ? new Date(dateVal).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}
+                                                                    </span>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleDeleteComment(comment.id)}
+                                                                        className="text-gray-300 hover:text-red-500 transition-colors text-lg leading-none"
+                                                                        title="Yorumu Sil"
+                                                                    >
+                                                                        &times;
+                                                                    </button>
+                                                                </div>
                                                             </div>
                                                             <p className="text-sm text-gray-700 leading-relaxed">{comment.content}</p>
                                                         </div>
