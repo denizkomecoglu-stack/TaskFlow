@@ -53,6 +53,7 @@ export default function BoardDetail() {
     const [editingColumn, setEditingColumn] = useState<Column | null>(null);
     const [editColTitle, setEditColTitle] = useState('');
     const [showColDeleteConfirm, setShowColDeleteConfirm] = useState<Column | null>(null);
+    const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
 
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [copied, setCopied] = useState(false);
@@ -165,12 +166,11 @@ export default function BoardDetail() {
     };
 
     const handleLeaveBoard = async () => {
-        if (!window.confirm("Bu panodan ayrılmak istediğinize emin misiniz?")) return;
 
         try {
             await api.post(`/Boards/${id}/leave`);
-
             toast.success("Panodan ayrıldınız.");
+            setShowLeaveConfirm(false); //modalı kapat
 
             //ayrıldıktan sonra dashboarda yönlendir
             navigate('/dashboard');
@@ -181,6 +181,7 @@ export default function BoardDetail() {
             } else {
                 toast.error("Panodan ayrılırken bir hata oluştu.");
             }
+            setShowLeaveConfirm(false); //modalı kapat
         }
     };
 
@@ -591,7 +592,7 @@ export default function BoardDetail() {
 
                     {!board.isOwner && (
                         <button
-                            onClick={handleLeaveBoard}
+                            onClick={() => setShowLeaveConfirm(true)}
                             className="ml-2 rounded-lg bg-red-500/80 hover:bg-red-600 px-4 py-2 text-white font-medium backdrop-blur-sm transition shadow-sm border border-red-500/50"
                         >
                             Panodan ayrıl
@@ -1036,6 +1037,40 @@ export default function BoardDetail() {
                                 className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
                             >
                                 Evet, Sil
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* --- PANODAN AYRILMA ONAY POPUP'I --- */}
+            {showLeaveConfirm && (
+                <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+                    <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl transform transition-all">
+                        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 mb-4">
+                            {/* Çıkış Yap İkonu (Logout/Leave) */}
+                            <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                            </svg>
+                        </div>
+                        <h3 className="text-lg font-bold text-center text-gray-900 mb-2">Panodan Ayrıl</h3>
+                        <p className="text-sm text-center text-gray-500 mb-6">
+                            Bu panodan ayrılmak istediğinize emin misiniz? Panoya tekrar erişebilmek için yöneticiden yeni bir davet bağlantısı almanız gerekecektir.
+                        </p>
+                        <div className="flex justify-center gap-3 w-full">
+                            <button
+                                type="button"
+                                onClick={() => setShowLeaveConfirm(false)}
+                                className="flex-1 rounded-lg px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 transition focus:outline-none focus:ring-2 focus:ring-gray-300"
+                            >
+                                İptal
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleLeaveBoard}
+                                className="flex-1 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 transition shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
+                            >
+                                Evet, Ayrıl
                             </button>
                         </div>
                     </div>
