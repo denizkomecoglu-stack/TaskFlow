@@ -71,16 +71,13 @@ namespace TaskFlow.API.Controllers
         {
             var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
-            // Sütunun varlığını kontrol edelim
             var column = await _context.Columns.FindAsync(dto.ColumnId);
             if (column == null) return NotFound("Sütun bulunamadı");
 
-            // GÜVENLİK: Pano sahibi VEYA üyesi ise tam yetkisi var!
             var hasAccess = await _context.Boards
                 .AnyAsync(b => b.Id == column.BoardId && (b.OwnerId == userId || b.Members.Any(m => m.UserId == userId)));
 
-            if (!hasAccess)
-                return Unauthorized(new { Mesaj = "Bu işlemi yapmak için panoya üye olmalısınız." });
+            if (!hasAccess) return Unauthorized(new { Mesaj = "Bu işlemi yapmak için panoya üye olmalısınız." });
 
             var newTask = new TaskItem
             {
@@ -94,7 +91,25 @@ namespace TaskFlow.API.Controllers
 
             _context.Tasks.Add(newTask);
             await _context.SaveChangesAsync();
+
             var username = User.FindFirstValue("username") ?? "Biri";
+
+            // ================= EKSİK OLAN LOG KISMI EKLENDİ =================
+            var logMessage = $"{username}, '{newTask.Title}' adlı yeni bir görev ekledi.";
+            var activityLog = new ActivityLog
+            {
+                Id = Guid.NewGuid(),
+                BoardId = column.BoardId,
+                UserId = userId,
+                ActionType = "Oluşturdu",
+                Entity = "Görev",
+                Message = logMessage,
+                CreatedAt = DateTime.UtcNow
+            };
+            _context.ActivityLogs.Add(activityLog);
+            await _context.SaveChangesAsync();
+            // ================================================================
+
             await _hubContext.Clients.Group(column.BoardId.ToString()).SendAsync("BoardUpdated", username);
 
             var taskDto = new TaskItemDto
@@ -243,8 +258,7 @@ namespace TaskFlow.API.Controllers
             var hasAccess = await _context.Boards
                 .AnyAsync(b => b.Id == column.BoardId && (b.OwnerId == userId || b.Members.Any(m => m.UserId == userId)));
 
-            if (!hasAccess)
-                return Unauthorized(new { Mesaj = "Bu işlemi yapmak için panoya üye olmalısınız." });
+            if (!hasAccess) return Unauthorized(new { Mesaj = "Bu işlemi yapmak için panoya üye olmalısınız." });
 
             task.Title = dto.Title;
             task.Description = dto.Description;
@@ -252,6 +266,23 @@ namespace TaskFlow.API.Controllers
             await _context.SaveChangesAsync();
 
             var username = User.FindFirstValue("username") ?? "Biri";
+
+            // ================= EKSİK OLAN LOG KISMI EKLENDİ =================
+            var logMessage = $"{username}, '{task.Title}' görevini güncelledi.";
+            var activityLog = new ActivityLog
+            {
+                Id = Guid.NewGuid(),
+                BoardId = column.BoardId,
+                UserId = userId,
+                ActionType = "Güncelledi",
+                Entity = "Görev",
+                Message = logMessage,
+                CreatedAt = DateTime.UtcNow
+            };
+            _context.ActivityLogs.Add(activityLog);
+            await _context.SaveChangesAsync();
+            // ================================================================
+
             await _hubContext.Clients.Group(column.BoardId.ToString()).SendAsync("BoardUpdated", username);
 
             return Ok(new { Mesaj = "Görev başarıyla güncellendi." });
@@ -272,15 +303,32 @@ namespace TaskFlow.API.Controllers
             var hasAccess = await _context.Boards
                 .AnyAsync(b => b.Id == column.BoardId && (b.OwnerId == userId || b.Members.Any(m => m.UserId == userId)));
 
-            if (!hasAccess)
-                return Unauthorized(new { Mesaj = "Bu işlemi yapmak için panoya üye olmalısınız." });
+            if (!hasAccess) return Unauthorized(new { Mesaj = "Bu işlemi yapmak için panoya üye olmalısınız." });
 
             var boardId = column.BoardId.ToString();
+            var taskName = task.Title; // Silinmeden önce adını hafızaya alıyoruz
 
             _context.Tasks.Remove(task);
             await _context.SaveChangesAsync();
 
             var username = User.FindFirstValue("username") ?? "Biri";
+
+            // ================= EKSİK OLAN LOG KISMI EKLENDİ =================
+            var logMessage = $"{username}, '{taskName}' adlı görevi sildi.";
+            var activityLog = new ActivityLog
+            {
+                Id = Guid.NewGuid(),
+                BoardId = column.BoardId,
+                UserId = userId,
+                ActionType = "Sildi",
+                Entity = "Görev",
+                Message = logMessage,
+                CreatedAt = DateTime.UtcNow
+            };
+            _context.ActivityLogs.Add(activityLog);
+            await _context.SaveChangesAsync();
+            // ================================================================
+
             await _hubContext.Clients.Group(column.BoardId.ToString()).SendAsync("BoardUpdated", username);
 
             return Ok(new { Mesaj = "Görev başarıyla silindi." });
