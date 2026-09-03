@@ -31,6 +31,7 @@ export default function BoardDetail() {
     const [isLogOpen, setIsLogOpen] = useState(false);
     const [logs, setLogs] = useState<ActivityLog[]>([]);
     const [newComment, setNewComment] = useState("");
+    const [commentToDelete, setCommentToDelete] = useState<string | null>(null);
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -402,18 +403,18 @@ export default function BoardDetail() {
         }
     };
 
-    const handleDeleteComment = async (commentId: string) => {
-        if (!window.confirm("Bu yorumu silmek istediğinize emin misiniz?")) return;
+    const handleDeleteComment = async () => {
+        if (commentToDelete) return
 
         try {
-            await api.delete(`/Task/${editingTask?.id}/comments/${commentId}`);
+            await api.delete(`/Task/${editingTask?.id}/comments/${commentToDelete}`);
 
             // Ekranda yorumu anında kaldır (Optimistic UI)
             setEditingTask(prev => {
                 if (!prev) return prev;
                 return {
                     ...prev,
-                    comments: prev.comments?.filter(c => c.id !== commentId)
+                    comments: prev.comments?.filter(c => c.id !== commentToDelete)
                 };
             });
 
@@ -426,12 +427,13 @@ export default function BoardDetail() {
                         ...col,
                         tasks: col.tasks.map(task =>
                             task.id === editingTask?.id
-                                ? { ...task, comments: task.comments?.filter(c => c.id !== commentId) }
+                                ? { ...task, comments: task.comments?.filter(c => c.id !== commentToDelete) }
                                 : task
                         )
                     }))
                 };
             });
+            setCommentToDelete(null); // Silme işlemi tamamlandıktan sonra sıfırla
 
         } catch (error) {
             console.error("Yorum silinirken hata:", error);
@@ -889,7 +891,7 @@ export default function BoardDetail() {
                                                                     </span>
                                                                     <button
                                                                         type="button"
-                                                                        onClick={() => handleDeleteComment(comment.id)}
+                                                                        onClick={() => setCommentToDelete(comment.id)}
                                                                         className="text-gray-300 hover:text-red-500 transition-colors text-lg leading-none"
                                                                         title="Yorumu Sil"
                                                                     >
@@ -1012,18 +1014,60 @@ export default function BoardDetail() {
                     </div>
                 </div>
             )}
-
-            {showColDeleteConfirm && (
+            {/* YORUM SİLME ONAY POPUP'I */}
+            {commentToDelete && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-                    <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
+                    <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl transform transition-all">
+                        <h3 className="text-lg font-bold text-gray-900 mb-2">Yorumu Sil</h3>
+                        <p className="text-sm text-gray-500 mb-6">
+                            Bu yorumu kalıcı olarak silmek istediğinize emin misiniz? Bu işlem geri alınamaz.
+                        </p>
+                        <div className="flex justify-end gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setCommentToDelete(null)}
+                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300"
+                            >
+                                İptal
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleDeleteComment}
+                                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
+                            >
+                                Evet, Sil
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* --- LİSTE (KOLON) SİLME ONAY POPUP'I --- */}
+            {showColDeleteConfirm && (
+                <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+                    <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl transform transition-all">
                         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 mb-4">
                             <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
                         </div>
                         <h3 className="text-lg font-bold text-center text-gray-900 mb-2">Listeyi Sil</h3>
-                        <p className="text-sm text-center text-gray-500 mb-6">"<span className="font-semibold text-gray-800">{showColDeleteConfirm.title}</span>" listesini ve içindeki tüm kartları silmek istediğinize emin misiniz?</p>
+                        <p className="text-sm text-center text-gray-500 mb-6">
+                            "<span className="font-semibold text-gray-800">{showColDeleteConfirm.title}</span>" listesini ve içindeki tüm görevleri kalıcı olarak silmek istediğinize emin misiniz?
+                        </p>
                         <div className="flex justify-center gap-3 w-full">
-                            <button type="button" onClick={() => setShowColDeleteConfirm(null)} className="flex-1 rounded-lg px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 transition">Vazgeç</button>
-                            <button type="button" onClick={confirmDeleteColumn} className="flex-1 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 transition shadow-sm">Evet, Sil</button>
+                            <button
+                                type="button"
+                                onClick={() => setShowColDeleteConfirm(null)}
+                                className="flex-1 rounded-lg px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 transition focus:outline-none focus:ring-2 focus:ring-gray-300"
+                            >
+                                İptal
+                            </button>
+                            <button
+                                type="button"
+                                onClick={confirmDeleteColumn}
+                                className="flex-1 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 transition shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
+                            >
+                                Evet, Sil
+                            </button>
                         </div>
                     </div>
                 </div>
