@@ -756,114 +756,173 @@ export default function BoardDetail() {
 
             {editingTask && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-                    <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl">
-                        <div className="mb-5 flex items-center justify-between">
-                            <h2 className="text-xl font-bold text-gray-800">Kart Detayı</h2>
-                            <button onClick={() => setEditingTask(null)} className="text-gray-400 hover:text-gray-700 text-2xl leading-none">&times;</button>
-                        </div>
-                        <form onSubmit={handleUpdateTask}>
-                            <div className="mb-4">
-                                <label className="mb-1.5 block text-sm font-medium text-gray-700">Başlık</label>
-                                <input type="text" autoFocus value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none" />
-                            </div>
-                            <div className="mb-6">
-                                <label className="mb-1.5 block text-sm font-medium text-gray-700">Açıklama</label>
-                                <textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} rows={4} className="w-full resize-none rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none" />
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Bitiş Tarihi</label>
-                                <input
-                                    type="datetime-local"
-                                    value={editDueDate}
-                                    onChange={(e) => setEditDueDate(e.target.value)}
-                                    className="w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500"
-                                />
-                            </div>
-                            <div className="mb-6">
-                                <label className="mb-1.5 block text-sm font-medium text-gray-700">Kişi ata</label>
-                                <div className="flex gap-2">
-                                    <select
-                                        className="flex-1 rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:outline-none"
-                                        onChange={(e) => {
-                                            if (e.target.value) handleAssignTask(editingTask.id, e.target.value);
-                                            e.target.value = "";
-                                        }}
-                                    >
-                                        <option value="">+ Yeni kişi seç....</option>
-                                        {board?.members?.map(member => (
-                                            <option key={member.id} value={member.id}>{member.username}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                {/*zaten atanmış olanları listeleme ve çıkarma butonu */}
-                                <div className="mt-3 flex flex-wrap gap-2">
-                                    {editingTask.assignees?.map(assignee => (
-                                         <span key={assignee.userId} className="flex items-center gap-1 rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 border border-blue-200">
-                                            {assignee.user?.username}
-                                            <button
-                                                type="button"
-                                                onClick={() => handleRemoveAssignee(editingTask.id, assignee.userId)}
-                                                className="ml-1 text-blue-400 hover:text-red-500 font-bold"
-                                            >
-                                                &times;
-                                            </button>
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-                            <div className="mt-8 pt-4 flex justify-between items-center border-t border-gray-200">
-                                <button type="button" onClick={() => setShowDeleteConfirm(true)} className="bg-red-50 text-red-600 px-4 py-2 rounded-md hover:bg-red-100 transition">Sil</button>
-                                <div className="flex gap-2">
-                                    {/* YORUMLAR BÖLÜMÜ */}
-                                    <div className="mt-8 border-t border-gray-200 pt-6">
-                                        <h3 className="text-sm font-semibold text-gray-700 mb-4">Yorumlar</h3>
+                    {/* Ana Modal Kapsayıcı: Daha geniş (max-w-5xl) ve içerik taştığında kendi içinde kaydırılır */}
+                    <div className="w-full max-w-5xl max-h-[90vh] flex flex-col rounded-2xl bg-white shadow-2xl overflow-hidden">
 
-                                        {/* Yorum Listesi */}
-                                        <div className="space-y-4 mb-4 max-h-60 overflow-y-auto pr-2">
+                        {/* ÜST BÖLÜM: Başlık */}
+                        <div className="flex-shrink-0 px-6 py-5 border-b border-gray-200 flex items-center justify-between">
+                            <h2 className="text-2xl font-bold text-gray-800">Kart Detayı</h2>
+                            <button onClick={() => setEditingTask(null)} className="text-gray-400 hover:text-gray-700 text-3xl leading-none">&times;</button>
+                        </div>
+
+                        {/* ORTA BÖLÜM: Kaydırılabilir İçerik Alanı */}
+                        <div className="flex-1 overflow-y-auto p-6">
+                            {/* Form için ID veriyoruz ki en alttaki Kaydet butonu bu formu tetikleyebilsin */}
+                            <form id="task-detail-form" onSubmit={handleUpdateTask}>
+
+                                {/* CSS GRID: Ekranı 5 parçaya böler. 3 parça Sola, 2 parça Sağa */}
+                                <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+
+                                    {/* ================= SOL KOLON (Yapısal Veriler) ================= */}
+                                    <div className="lg:col-span-3 flex flex-col gap-5">
+                                        <div>
+                                            <label className="mb-1.5 block text-sm font-semibold text-gray-700">Başlık</label>
+                                            <input type="text" autoFocus value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none" />
+                                        </div>
+
+                                        <div>
+                                            <label className="mb-1.5 block text-sm font-semibold text-gray-700">Açıklama</label>
+                                            <textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} rows={4} className="w-full resize-none rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none" />
+                                        </div>
+
+                                        {/* Tarih ve Kişi Atama yanyana dursun diye iç grid */}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                                            <div>
+                                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Bitiş Tarihi</label>
+                                                <input
+                                                    type="datetime-local"
+                                                    value={editDueDate}
+                                                    onChange={(e) => setEditDueDate(e.target.value)}
+                                                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-blue-500 focus:border-blue-500"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="mb-1.5 block text-sm font-semibold text-gray-700">Kişi Ata</label>
+                                                <select
+                                                    className="w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:outline-none bg-white"
+                                                    onChange={(e) => {
+                                                        if (e.target.value) handleAssignTask(editingTask.id, e.target.value);
+                                                        e.target.value = "";
+                                                    }}
+                                                >
+                                                    <option value="">+ Yeni kişi seç...</option>
+                                                    {board?.members?.map(member => (
+                                                        <option key={member.id} value={member.id}>{member.username}</option>
+                                                    ))}
+                                                </select>
+
+                                                {/* Atanmış Kişiler Listesi */}
+                                                <div className="mt-3 flex flex-wrap gap-2">
+                                                    {editingTask.assignees?.map(assignee => (
+                                                        <span key={assignee.userId} className="flex items-center gap-1 rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 border border-blue-200 shadow-sm">
+                                                            {assignee.user?.username}
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleRemoveAssignee(editingTask.id, assignee.userId)}
+                                                                className="ml-1 text-blue-400 hover:text-red-500 font-bold"
+                                                            >
+                                                                &times;
+                                                            </button>
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* ================= SAĞ KOLON (İletişim ve Yorumlar) ================= */}
+                                    <div className="lg:col-span-2 flex flex-col h-full lg:border-l lg:border-gray-200 lg:pl-8">
+                                        <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                                            💬 Yorumlar
+                                        </h3>
+
+                                        {/* Yorum Listesi: flex-1 ile alanı doldurur, taşarsa kaydırır */}
+                                        <div className="flex-1 space-y-4 mb-4 min-h-[200px] max-h-[300px] overflow-y-auto pr-2">
                                             {editingTask.comments && editingTask.comments.length > 0 ? (
-                                                editingTask.comments.map(comment => (
-                                                    <div key={comment.id} className="bg-gray-50 border border-gray-100 p-3 rounded-md">
-                                                        <div className="flex justify-between items-center mb-1">
-                                                            <span className="text-xs font-bold text-gray-800">{comment.user.username}</span>
-                                                            <span className="text-xs text-gray-400">
-                                                                {comment.createdat ? new Date(comment.createdat).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'}) : ''}
-                                                            </span>
+                                                editingTask.comments.map(comment => {
+                                                    // Arka plandan "createdat" veya "createdAt" gelme ihtimaline karşı güvenli parse
+                                                    const dateVal = comment.createdat || comment.createdat;
+                                                    return (
+                                                        <div key={comment.id} className="bg-gray-50 border border-gray-200 p-3 rounded-lg shadow-sm">
+                                                            <div className="flex justify-between items-center mb-2">
+                                                                <span className="text-xs font-bold text-gray-800">{comment.user.username}</span>
+                                                                <span className="text-xs text-gray-400">
+                                                                    {dateVal ? new Date(dateVal).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}
+                                                                </span>
+                                                            </div>
+                                                            <p className="text-sm text-gray-700 leading-relaxed">{comment.content}</p>
                                                         </div>
-                                                        <p className="text-sm text-gray-600">{comment.content}</p>
-                                                    </div>
-                                                ))
+                                                    );
+                                                })
                                             ) : (
-                                                <p className="text-xs text-gray-400 italic">Henüz yorum yapılmamış.</p>
+                                                <div className="flex flex-col items-center justify-center h-full text-gray-400 space-y-2">
+                                                    <p className="text-xs italic text-center">Henüz yorum yapılmamış.</p>
+                                                </div>
                                             )}
                                         </div>
 
-                                        {/* Yorum Ekleme Kutusu */}
-                                        <div className="flex gap-2">
-                                            <input
-                                                type="text"
+                                        {/* Genişletilmiş Letterbox (Yorum Ekleme Alanı) */}
+                                        <div className="mt-auto pt-4 border-t border-gray-100">
+                                            <textarea
                                                 value={newComment}
                                                 onChange={(e) => setNewComment(e.target.value)}
-                                                onKeyDown={(e) => { if (e.key === 'Enter') handleAddComment(); }} // Enter ile gönderme
-                                                placeholder="Bir yorum yazın..."
-                                                className="flex-1 border border-gray-300 rounded-md p-2 text-sm focus:ring-blue-500 focus:border-blue-500"
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                                        e.preventDefault();
+                                                        handleAddComment();
+                                                    }
+                                                }}
+                                                placeholder="Bir yorum yazın... (Göndermek için Enter)"
+                                                rows={3}
+                                                className="w-full resize-none border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-gray-50 focus:bg-white"
                                             />
-                                            <button
-                                                type="button"
-                                                onClick={handleAddComment}
-                                                disabled={!newComment.trim()} // Kutucuk boşsa butonu pasif yap
-                                                className="bg-gray-800 text-white px-4 py-2 rounded-md text-sm hover:bg-gray-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                                            >
-                                                Gönder
-                                            </button>
+                                            <div className="flex justify-end mt-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={handleAddComment}
+                                                    disabled={!newComment.trim()}
+                                                    className="bg-gray-800 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-gray-700 transition disabled:opacity-50 shadow-sm"
+                                                >
+                                                    Yorum Yap
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-3">
-                                        <button type="button" onClick={() => setEditingTask(null)} className="h-10 px-4 flex items-center justify-center rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-offset-1">İptal</button>
-                                        <button type="submit" className="h-10 px-6 flex items-center justify-center rounded-lg bg-blue-600 text-sm font-medium text-white hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 shadow-sm">Kaydet</button>
-                                    </div>
+
                                 </div>
+                            </form>
+                        </div>
+
+                        {/* ALT BÖLÜM: Sabit Butonlar Alanı */}
+                        <div className="flex-shrink-0 px-6 py-4 border-t border-gray-200 flex items-center justify-between bg-gray-50">
+                            <button
+                                type="button"
+                                onClick={() => setShowDeleteConfirm(true)}
+                                className="h-10 px-4 flex items-center justify-center rounded-lg bg-red-50 text-sm font-medium text-red-600 hover:bg-red-100 transition focus:ring-2 focus:ring-red-500"
+                            >
+                                Görevi Sil
+                            </button>
+
+                            <div className="flex items-center gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setEditingTask(null)}
+                                    className="h-10 px-4 flex items-center justify-center rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition focus:ring-2 focus:ring-blue-500"
+                                >
+                                    İptal
+                                </button>
+                                {/* form="task-detail-form" özelliği sayesinde formun dışında da olsa formu tetikler */}
+                                <button
+                                    type="submit"
+                                    form="task-detail-form"
+                                    className="h-10 px-8 flex items-center justify-center rounded-lg bg-blue-600 text-sm font-medium text-white hover:bg-blue-700 transition shadow-md focus:ring-2 focus:ring-blue-500"
+                                >
+                                    Kaydet
+                                </button>
                             </div>
-                        </form>
+                        </div>
+
                     </div>
                 </div>
             )}
