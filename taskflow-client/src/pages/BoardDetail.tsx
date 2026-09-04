@@ -198,12 +198,14 @@ export default function BoardDetail() {
         //tarihi format
         const formattedDate = due.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 
-        if (diffHours <= 24) {
-            return { text: formattedDate, style: "bg-red-100 text-red-700 font-bold border border-red-300"}; //kırmızı"
+        if (diffHours < 0) {
+            return { text: "Süresi Dolmuş", style: "bg-gray-200 text-gray-500 border border-gray-300 font-semibold" };
+        } else if (diffHours <= 24) {
+            return { text: formattedDate, style: "bg-red-100 text-red-700 font-bold border border-red-300" };
         } else if (diffHours <= 72) {
-            return { text: formattedDate, style: "bg-yellow-100 text-yellow-800" }; //sarı
+            return { text: formattedDate, style: "bg-yellow-100 text-yellow-800" };
         } else {
-            return { text: formattedDate, style: "bg-gray-100 text-gray-600" }; 
+            return { text: formattedDate, style: "bg-gray-100 text-gray-600" };
         }
     };
 
@@ -405,7 +407,7 @@ export default function BoardDetail() {
     };
 
     const handleDeleteComment = async () => {
-        if (commentToDelete) return
+        if (!commentToDelete) return;
 
         try {
             await api.delete(`/Task/${editingTask?.id}/comments/${commentToDelete}`);
